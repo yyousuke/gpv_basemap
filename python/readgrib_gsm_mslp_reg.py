@@ -44,8 +44,8 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, uwnd, vwnd
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
     else:
         opt_c1 = True
-        opt_barbs = True
-        bstp = 3
+        opt_barbs = False
+        bstp = 1
         cstp = 1
         mres = "h"
         # Map.regionの変数を取得
