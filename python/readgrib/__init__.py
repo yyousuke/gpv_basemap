@@ -9,7 +9,6 @@ import netCDF4
 import numpy as np
 
 # 入力する気象庁MSMデータのファイルを置いたディレクトリ
-#sys_file_dir="/Users/yousuke/Downloads/msm"
 sys_file_dir = os.environ.get('DATADIR_MSM', '/data')
 
 # URL
