@@ -14,16 +14,18 @@ from jmaloc import MapRegion
 from readgrib import ReadMSM
 from datetime import timedelta
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 import warnings
-warnings.filterwarnings('ignore', category=matplotlib.MatplotlibDeprecationWarning)
-matplotlib.rcParams['figure.max_open_warning'] = 0
-plt.rcParams['xtick.direction'] = 'in' # x軸目盛線を内側
-plt.rcParams['xtick.major.width'] = 1.2 # x軸主目盛線の長さ
-plt.rcParams['ytick.direction'] = 'in' # y軸目盛線を内側
-plt.rcParams['ytick.major.width'] = 1.2 # y軸主目盛線の長さ
-input_dir_default = "retrieve"
 
+warnings.filterwarnings('ignore',
+                        category=matplotlib.MatplotlibDeprecationWarning)
+matplotlib.rcParams['figure.max_open_warning'] = 0
+plt.rcParams['xtick.direction'] = 'in'  # x軸目盛線を内側
+plt.rcParams['xtick.major.width'] = 1.2  # x軸主目盛線の長さ
+plt.rcParams['ytick.direction'] = 'in'  # y軸目盛線を内側
+plt.rcParams['ytick.major.width'] = 1.2  # y軸主目盛線の長さ
+input_dir_default = "retrieve"
 
 # 予報時刻からの経過時間、１時間毎に指定可能
 # この期間の時系列を作成
@@ -31,39 +33,44 @@ fcst_str = 0
 fcst_end = 36
 fcst_step = 1
 
-
 #1.1:0:grid_template=0:winds(N/S):
 #  lat-lon grid:(481 x 505) units 1e-06 input WE:NS output WE:SN res 48
 #  lat 47.600000 to 22.400000 by 0.050000
 #  lon 120.000000 to 150.000000 by 0.062500 #points=242905
 
-plt_barbs = True # true: 矢羽を描く
+plt_barbs = True  # true: 矢羽を描く
 #barbs_kt = False # true: kt, false: m/s
-barbs_kt = True # true: kt, false: m/s
+barbs_kt = True  # true: kt, false: m/s
 
 ### Start Map Prog ###
+
 
 def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     #
     # 作図
     # (0) プロットエリアの定義
     #fig, ax1 = plt.subplots()
-    fig = plt.figure(figsize=(6,6))
-    ax1 = fig.add_subplot(3,1,1)
+    fig = plt.figure(figsize=(6, 6))
+    ax1 = fig.add_subplot(3, 1, 1)
     # タイトルを付ける
     plt.title(title)
- 
+
     # (1) 降水量と気温
     # (1-1) 降水量(mm)
-    ax1.set_ylim([0, math.ceil(prep.max()+math.fmod(prep.max(),10))+1])
-    ax1.bar(index, prep, color='b', width=0.03, alpha=0.4, label='Precipitation')
+    ax1.set_ylim([0, math.ceil(prep.max() + math.fmod(prep.max(), 10)) + 1])
+    ax1.bar(index,
+            prep,
+            color='b',
+            width=0.03,
+            alpha=0.4,
+            label='Precipitation')
     ax1.set_ylabel('Precipitation (mm)')
     # 凡例
     ax1.legend(loc='upper left')
-    # 
+    #
     # (1-2) 気温（K）
-    ax2 = ax1.twinx() # 2つのプロットを関連付ける
-    ax2.set_ylim([math.floor(temp.min()-1), math.ceil(temp.max())+2])
+    ax2 = ax1.twinx()  # 2つのプロットを関連付ける
+    ax2.set_ylim([math.floor(temp.min() - 1), math.ceil(temp.max()) + 2])
     ax2.plot(index, temp, color='r', label='Temperature')
     ax2.set_ylabel('Temperature (K)')
     # 凡例
@@ -71,8 +78,8 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     #plt.legend(loc='lower center')
     #
     # (2) RH（%）& wind
-    # (2-1) RH（%） 
-    ax3 = fig.add_subplot(3,1,2)
+    # (2-1) RH（%）
+    ax3 = fig.add_subplot(3, 1, 2)
     ax3.set_ylim([0, 100])
     ax3.plot(index, relh, color='b', label='RH')
     ax3.set_ylabel('RH (%)')
@@ -88,12 +95,21 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
             barb_increments=dict(half=2.57222, full=5.14444, flag=25.7222))
         else:
             # m/s
-            ax3.barbs(index, y, uwnd, vwnd, color='k', length=5, sizes=dict(emptybarb=0.001))
+            ax3.barbs(index,
+                      y,
+                      uwnd,
+                      vwnd,
+                      color='k',
+                      length=5,
+                      sizes=dict(emptybarb=0.001))
     #
-    # (3) 地表気圧（hPa） 
-    ax5 = fig.add_subplot(3,1,3)
+    # (3) 地表気圧（hPa）
+    ax5 = fig.add_subplot(3, 1, 3)
     #
-    ax5.set_ylim([math.floor(mslp.min()-math.fmod(mslp.min(),2))-1, math.ceil(mslp.max())+1])
+    ax5.set_ylim([
+        math.floor(mslp.min() - math.fmod(mslp.min(), 2)) - 1,
+        math.ceil(mslp.max()) + 1
+    ])
     ax5.plot(index, mslp, color='k', label='Pressure')
     ax5.set_ylabel('pressure (hPa)')
     #ax5.set_xlabel('Hour')
@@ -101,7 +117,7 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     ax5.legend(loc='upper left')
     #
     # (3-2) 気温（K）
-    ax6 = ax5.twinx() # 2つのプロットを関連付ける
+    ax6 = ax5.twinx()  # 2つのプロットを関連付ける
     ax6.set_ylim([0, 100])
     ind_l = index - timedelta(minutes=20)
     ind_m = index - timedelta(minutes=5)
@@ -147,43 +163,42 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     # プロット範囲の調整
     plt.subplots_adjust(top=None, bottom=0.15, wspace=0.25, hspace=0.15)
     #plt.subplots_adjust(hspace=0.8,bottom=0.2)
- 
+
     # (4) ファイルへの書き出し
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
     #plt.show()
 
-### End Map Prog ###
 
+### End Map Prog ###
 
 ### options ###
 
+
 # オプションの読み込み
 def _construct_parser():
-    parser = argparse.ArgumentParser(description='Matplotlib Basemap, weather map')
+    parser = argparse.ArgumentParser(
+        description='Matplotlib Basemap, weather map')
 
-    parser.add_argument(
-        '--fcst_date',
-        type=str,
-        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-        metavar='<fcstdate>'
-    )
-    parser.add_argument(
-        '--sta',
-        type=str,
-        help=('Station name; e.g. Japan, Tokyo,,,'),
-        metavar='<sta>'
-    )
+    parser.add_argument('--fcst_date',
+                        type=str,
+                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
+                        metavar='<fcstdate>')
+    parser.add_argument('--sta',
+                        type=str,
+                        help=('Station name; e.g. Japan, Tokyo,,,'),
+                        metavar='<sta>')
     parser.add_argument(
         '--input_dir',
         type=str,
-        help=('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-               'if --input_dir force_retrieve, download original data from RISH server' 
-               'if --input_dir retrieve, check avilable download (default)' ),
-        metavar='<input_dir>'
-    )
+        help=
+        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
+         'if --input_dir force_retrieve, download original data from RISH server'
+         'if --input_dir retrieve, check avilable download (default)'),
+        metavar='<input_dir>')
 
     return parser
+
 
 def _parse_command(args):
     parser = _construct_parser()
@@ -192,8 +207,8 @@ def _parse_command(args):
         parsed_args.input_dir = input_dir_default
     return parsed_args
 
-### options ###
 
+### options ###
 
 if __name__ == '__main__':
     # オプションの読み込み
@@ -228,7 +243,8 @@ if __name__ == '__main__':
         #rlon=139.65
         #rlat=35.438
     else:
-        print("not supported yet: sta =", sta) ; quit()
+        print("not supported yet: sta =", sta)
+        quit()
     #
     # datetimeに変換
     tinfo = pd.to_datetime(fcst_date)
@@ -252,49 +268,50 @@ if __name__ == '__main__':
     cfrh_add = []
     cfrt_add = []
     # fcst_timeを変えてplotmapを実行
-    for fcst_time in np.arange(fcst_str, fcst_end+1, fcst_step):
-        index_add.append(tinfo + timedelta(hours=int(1*fcst_time)))
+    for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
+        index_add.append(tinfo + timedelta(hours=int(1 * fcst_time)))
         # fcst_timeを設定
         msm.set_fcst_time(fcst_time)
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = msm.readnetcdf()
         # 変数取り出し
         # 海面更生気圧を二次元のndarrayで取り出す
-        mslp = msm.ret_var("PRMSL_meansealevel", fact=0.01) # (hPa)
-        mslp_add.append(mslp[ilat,ilon])
+        mslp = msm.ret_var("PRMSL_meansealevel", fact=0.01)  # (hPa)
+        mslp_add.append(mslp[ilat, ilon])
         # 降水量を二次元のndarrayで取り出す
-        rain = msm.ret_var("APCP_surface") # (mm/h)
-        rain_add.append(rain[ilat,ilon])
+        rain = msm.ret_var("APCP_surface")  # (mm/h)
+        rain_add.append(rain[ilat, ilon])
         # 気温を二次元のndarrayで取り出す (K->℃)
-        temp = msm.ret_var("TMP_1D5maboveground", offset=-273.15) # (℃)
-        temp_add.append(temp[ilat,ilon])
+        temp = msm.ret_var("TMP_1D5maboveground", offset=-273.15)  # (℃)
+        temp_add.append(temp[ilat, ilon])
         # 東西風を二次元のndarrayで取り出す
-        uwnd = msm.ret_var("UGRD_10maboveground") # (m/s)
-        uwnd_add.append(uwnd[ilat,ilon])
+        uwnd = msm.ret_var("UGRD_10maboveground")  # (m/s)
+        uwnd_add.append(uwnd[ilat, ilon])
         # 南北風を二次元のndarrayで取り出す
-        vwnd = msm.ret_var("VGRD_10maboveground") # (m/s)
-        vwnd_add.append(vwnd[ilat,ilon])
+        vwnd = msm.ret_var("VGRD_10maboveground")  # (m/s)
+        vwnd_add.append(vwnd[ilat, ilon])
         # 相対湿度を二次元のndarrayで取り出す
-        relh = msm.ret_var("RH_1D5maboveground") # ()
-        relh_add.append(relh[ilat,ilon])
+        relh = msm.ret_var("RH_1D5maboveground")  # ()
+        relh_add.append(relh[ilat, ilon])
         # 下層雲量を二次元のndarrayで取り出す
-        cfrl = msm.ret_var("LCDC_surface") # ()
-        cfrl_add.append(cfrl[ilat,ilon])
+        cfrl = msm.ret_var("LCDC_surface")  # ()
+        cfrl_add.append(cfrl[ilat, ilon])
         # 中層雲量を二次元のndarrayで取り出す
-        cfrm = msm.ret_var("MCDC_surface") # ()
-        cfrm_add.append(cfrm[ilat,ilon])
+        cfrm = msm.ret_var("MCDC_surface")  # ()
+        cfrm_add.append(cfrm[ilat, ilon])
         # 上層雲量を二次元のndarrayで取り出す
-        cfrh = msm.ret_var("HCDC_surface") # ()
-        cfrh_add.append(cfrh[ilat,ilon])
+        cfrh = msm.ret_var("HCDC_surface")  # ()
+        cfrh_add.append(cfrh[ilat, ilon])
         # 全雲量を二次元のndarrayで取り出す
-        cfrt = msm.ret_var("TCDC_surface") # ()
-        cfrt_add.append(cfrt[ilat,ilon])
+        cfrt = msm.ret_var("TCDC_surface")  # ()
+        cfrt_add.append(cfrt[ilat, ilon])
         # ファイルを閉じる
         msm.close_netcdf()
         #
     #
     # 出力ファイル名の設定
-    output_filename = "map_tvar_msm_" + str(fcst_str) + "-" + str(fcst_end) + "_" + sta + ".png"
+    output_filename = "map_tvar_msm_" + str(fcst_str) + "-" + str(
+        fcst_end) + "_" + sta + ".png"
     nt = len(index_add)
 
     index = np.vstack(index_add).reshape(nt)
@@ -313,4 +330,3 @@ if __name__ == '__main__':
     #
     # 作図
     plotmap(index, mslp, rain, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt)
-

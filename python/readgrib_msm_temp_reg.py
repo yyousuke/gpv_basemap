@@ -11,7 +11,9 @@ from mpl_toolkits.basemap import Basemap, cm
 from jmaloc import MapRegion
 from readgrib import ReadMSM
 import warnings
-warnings.filterwarnings('ignore', category=matplotlib.MatplotlibDeprecationWarning)
+
+warnings.filterwarnings('ignore',
+                        category=matplotlib.MatplotlibDeprecationWarning)
 matplotlib.rcParams['figure.max_open_warning'] = 0
 input_dir_default = "retrieve"
 
@@ -23,54 +25,70 @@ fcst_step = 3
 
 ### Start Map Prog ###
 
-def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh, title, output_filename):
+
+def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
+            tmp, rh, title, output_filename):
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
     if sta == "Japan":
-        opt_c1 = False   # 1度の等温線を描かない
-        opt_barbs = True # 矢羽を描く
-        bstp = 10        # 矢羽を何個飛ばしに描くか
-        cstp = 1         # 等値線ラベルを何個飛ばしに付けるか
-        mres = "l"       # 地図の解像度
+        opt_c1 = False  # 1度の等温線を描かない
+        opt_barbs = True  # 矢羽を描く
+        bstp = 10  # 矢羽を何個飛ばしに描くか
+        cstp = 1  # 等値線ラベルを何個飛ばしに付けるか
+        mres = "l"  # 地図の解像度
         # 変数を指定(all)
         lon_step = 5
-        lon_min  = lons_1d.min()
-        lon_max  = lons_1d.max()
+        lon_min = lons_1d.min()
+        lon_max = lons_1d.max()
         lat_step = 5
-        lat_min  = lats_1d.min()
-        lat_max  = lats_1d.max()
+        lat_min = lats_1d.min()
+        lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
     else:
-        opt_c1 = True    # 1度の等温線を描く
-        opt_barbs = True # 矢羽を描く
-        bstp = 2         # 矢羽を何個飛ばしに描くか
-        cstp = 1         # 等値線ラベルを何個飛ばしに付けるか
-        mres = "h"       # 地図の解像度
+        opt_c1 = True  # 1度の等温線を描く
+        opt_barbs = True  # 矢羽を描く
+        bstp = 2  # 矢羽を何個飛ばしに描くか
+        cstp = 1  # 等値線ラベルを何個飛ばしに付けるか
+        mres = "h"  # 地図の解像度
         # Map.regionの変数を取得
         lon_step = region.lon_step
-        lon_min  = region.lon_min
-        lon_max  = region.lon_max
+        lon_min = region.lon_min
+        lon_max = region.lon_max
         lat_step = region.lat_step
-        lat_min  = region.lat_min
-        lat_max  = region.lat_max
+        lat_min = region.lat_min
+        lat_max = region.lat_max
 
     # マップを作成
     fig = plt.figure()
     # 最初の4つのパラメータは描画する範囲の指定、最後は解像度
-    m = Basemap(llcrnrlon=lon_min, urcrnrlon=lon_max, llcrnrlat=lat_min, urcrnrlat=lat_max, resolution=mres)
+    m = Basemap(llcrnrlon=lon_min,
+                urcrnrlon=lon_max,
+                llcrnrlat=lat_min,
+                urcrnrlat=lat_max,
+                resolution=mres)
     #
     # 緯度線、経度線を引く
-    m.drawmeridians(np.arange(0, 360, lon_step), color="k", fontsize='small', 
-        labels=[False,False,False,True])
-    m.drawparallels(np.arange(-90, 90, lat_step), color="k", fontsize='small', 
-        labels=[True,False,False,False])
-    # 
+    m.drawmeridians(np.arange(0, 360, lon_step),
+                    color="k",
+                    fontsize='small',
+                    labels=[False, False, False, True])
+    m.drawparallels(np.arange(-90, 90, lat_step),
+                    color="k",
+                    fontsize='small',
+                    labels=[True, False, False, False])
+    #
     # 850 hPa 気温
     # 等温線を描く値のリスト
     levels_t = np.arange(-60, 61, 3)
     # 等温線を描く
-    cr = m.contour(lons, lats, tmp, levels=levels_t, colors='k', linestyles='-', linewidths=0.8)
+    cr = m.contour(lons,
+                   lats,
+                   tmp,
+                   levels=levels_t,
+                   colors='k',
+                   linestyles='-',
+                   linewidths=0.8)
     # ラベルを付ける
     clevels = cr.levels
     cr.clabel(clevels[::cstp], fontsize=12, fmt="%d")
@@ -80,43 +98,51 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp,
         levels1 = np.arange(-60, 61, 1)
         #levels1 = range(math.floor(tmp.min()-math.fmod(tmp.min(),1)), math.ceil(tmp.max())+1,1)
         # 等温線をひく
-        cr2 = m.contour(lons, lats, tmp, levels=levels1, colors='k', linestyles=':', linewidths=0.8)
+        cr2 = m.contour(lons,
+                        lats,
+                        tmp,
+                        levels=levels1,
+                        colors='k',
+                        linestyles=':',
+                        linewidths=0.8)
         cr2.clabel(clevels[::cstp], fontsize=12, fmt="%d")
     #
-    # 850 hPa 相対湿度 
+    # 850 hPa 相対湿度
     # 陰影を描く値のリスト
     levels_r = [60, 75, 80, 90, 100]
     # 色テーブルの設定
-    cmap = cm.GMT_drywet # 色テーブルの選択
+    cmap = cm.GMT_drywet  # 色テーブルの選択
     cmap.set_under('w', alpha=0)
     # 陰影を描く
     cs = m.contourf(lons, lats, rh, levels=levels_r, cmap=cmap, extend='min')
     # カラーバーを付ける
     cbar = m.colorbar(cs, location='bottom', pad="5%")
     cbar.set_label('RH (%)')
-    #    
+    #
     # 850 hPa東西風、南北風
     # 矢羽を描く
     if opt_barbs:
         m.barbs(lons[::bstp,::bstp], lats[::bstp,::bstp], \
                 uwnd[::bstp,::bstp], vwnd[::bstp,::bstp], \
-                color='r', length=4, 
+                color='r', length=4,
                 sizes=dict(emptybarb=0.00, spacing=0.16, height=0.4))
     #
     # 海岸線を描く
-    m.drawcoastlines() 
+    m.drawcoastlines()
     #
     # タイトルを付ける
     plt.title(title)
     # 図を保存
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
+
+
 #   plt.show()
 
 ### End Map Prog ###
 
-
 ### utils ###
+
 
 # convertを使い、pngからgifアニメーションに変換する
 def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
@@ -125,47 +151,46 @@ def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
     args.append(output_filename)
     print(args)
     # コマンドとオプション入出力ファイルのリストを渡し、変換の実行
-    res = subprocess.run(args=args, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+    res = subprocess.run(args=args,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     print(res.stdout.decode("utf-8"))
     print(res.stderr.decode("utf-8"))
 
-### utils ###
 
+### utils ###
 
 ### options ###
 
+
 # オプションの読み込み
 def _construct_parser():
-    parser = argparse.ArgumentParser(description='Matplotlib Basemap, weather map')
+    parser = argparse.ArgumentParser(
+        description='Matplotlib Basemap, weather map')
 
-    parser.add_argument(
-        '--fcst_date',
-        type=str,
-        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-        metavar='<fcstdate>'
-    )
-    parser.add_argument(
-        '--sta',
-        type=str,
-        help=('Station name; e.g. Japan, Tokyo,,,'),
-        metavar='<sta>'
-    )
-    parser.add_argument(
-        '--level',
-        type=str,
-        help=('level (hPa); e.g. 925, 850, 700, 500,,,'),
-        metavar='<level>'
-    )
+    parser.add_argument('--fcst_date',
+                        type=str,
+                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
+                        metavar='<fcstdate>')
+    parser.add_argument('--sta',
+                        type=str,
+                        help=('Station name; e.g. Japan, Tokyo,,,'),
+                        metavar='<sta>')
+    parser.add_argument('--level',
+                        type=str,
+                        help=('level (hPa); e.g. 925, 850, 700, 500,,,'),
+                        metavar='<level>')
     parser.add_argument(
         '--input_dir',
         type=str,
-        help=('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-               'if --input_dir force_retrieve, download original data from RISH server' 
-               'if --input_dir retrieve, check avilable download (default)' ),
-        metavar='<input_dir>'
-    )
+        help=
+        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
+         'if --input_dir force_retrieve, download original data from RISH server'
+         'if --input_dir retrieve, check avilable download (default)'),
+        metavar='<input_dir>')
 
     return parser
+
 
 def _parse_command(args):
     parser = _construct_parser()
@@ -176,8 +201,8 @@ def _parse_command(args):
         parsed_args.level = 850
     return parsed_args
 
-### options ###
 
+### options ###
 
 if __name__ == '__main__':
     # オプションの読み込み
@@ -198,39 +223,42 @@ if __name__ == '__main__':
     #
     # fcst_timeを変えてplotmapを実行
     output_filenames = []
-    for fcst_time in np.arange(fcst_str, fcst_end+1, fcst_step):
+    for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
         msm.set_fcst_time(fcst_time)
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = msm.readnetcdf()
         # 変数取り出し
         # 850 hPa 東西風、南北風データを二次元のndarrayで取り出す
-        uwnd = msm.ret_var("UGRD_"+str(level)+"mb") # (m/s)
-        vwnd = msm.ret_var("VGRD_"+str(level)+"mb") # (m/s)
-#        uwnd = msm.ret_var("UGRD_850mb") # (m/s)
-#        vwnd = msm.ret_var("VGRD_850mb") # (m/s)
+        uwnd = msm.ret_var("UGRD_" + str(level) + "mb")  # (m/s)
+        vwnd = msm.ret_var("VGRD_" + str(level) + "mb")  # (m/s)
+        #        uwnd = msm.ret_var("UGRD_850mb") # (m/s)
+        #        vwnd = msm.ret_var("VGRD_850mb") # (m/s)
         wspd = np.sqrt(uwnd**2 + vwnd**2)
         # 850 hPa 気温データを二次元のndarrayで取り出す (K->℃)
-        tmp = msm.ret_var("TMP_"+str(level)+"mb", offset=-273.15) # (℃)
-#        tmp = msm.ret_var("TMP_850mb", offset=-273.15) # (℃)
+        tmp = msm.ret_var("TMP_" + str(level) + "mb", offset=-273.15)  # (℃)
+        #        tmp = msm.ret_var("TMP_850mb", offset=-273.15) # (℃)
         # 850 hPa 相対湿度データを二次元のndarrayで取り出す ()
-        rh = msm.ret_var("RH_"+str(level)+"mb") # ()
-#        rh = msm.ret_var("RH_850mb") # ()
+        rh = msm.ret_var("RH_" + str(level) + "mb")  # ()
+        #        rh = msm.ret_var("RH_850mb") # ()
         # ファイルを閉じる
         msm.close_netcdf()
         #
         # タイトルの設定
-        title = str(level) + "hPa " + tlab + " forecast, +" + str(fcst_time) + "h"
-#        title = tlab + " forecast, +" + str(fcst_time) + "h"
+        title = str(level) + "hPa " + tlab + " forecast, +" + str(
+            fcst_time) + "h"
+        #        title = tlab + " forecast, +" + str(fcst_time) + "h"
         # 出力ファイル名の設定
         hh = "{d:02d}".format(d=fcst_time)
-        output_filename = "map_msm_temp_" + str(level) + "hPa_" + sta + "_" + str(hh) + ".png"
+        output_filename = "map_msm_temp_" + str(
+            level) + "hPa_" + sta + "_" + str(hh) + ".png"
         # 作図
-        plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh, \
-            title, output_filename)
+        plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
+                tmp, rh, title, output_filename)
         output_filenames.append(output_filename)
     # gifアニメーションのファイル名
     output_gif_filename = "anim_msm_temp_" + str(level) + "hPa_" + sta + ".gif"
     # pngからgifアニメーションに変換
-    convert_png2gif(input_filenames=output_filenames, delay="80", output_filename=output_gif_filename)
-
+    convert_png2gif(input_filenames=output_filenames,
+                    delay="80",
+                    output_filename=output_gif_filename)

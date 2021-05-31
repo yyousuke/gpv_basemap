@@ -172,9 +172,9 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
     # 雲量の陰影を付ける値をlevelsrにリストとして入れる
     levelsc = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     # 色テーブル取得
-    cmapl = plt.get_cmap('Reds') # 下層
-    cmapm = plt.get_cmap('Greens') # 中層
-    cmaph = plt.get_cmap('Blues') # 上層
+    cmapl = plt.get_cmap('Reds')  # 下層
+    cmapm = plt.get_cmap('Greens')  # 中層
+    cmaph = plt.get_cmap('Blues')  # 上層
     # 陰影を描く（下層雲）
     csl = m.contourf(lons, lats, cfrl, levels=levelsc, cmap=cmapl, alpha=0.3)
     # 陰影を描く（中層雲）
