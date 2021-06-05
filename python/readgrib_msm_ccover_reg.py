@@ -44,6 +44,7 @@ class val2col():
                  fig=None,
                  anchor=(0.35, 0.24),
                  size=(0.3, 0.02),
+                 fmt="{f:.0f}",
                  label=True):
         if fig is None:
             raise Exception('fig is needed')
@@ -56,7 +57,7 @@ class val2col():
         for t in ll:
             ticks.append((t - self.tmin) / (self.tmax - self.tmin) * self.cm.N)
             if label:
-                labels.append("{f:.1f}".format(f=t))
+                labels.append(fmt.format(f=t))
         # カラーバーを描く
         ax.imshow(gradient_array, aspect='auto', cmap=self.cm)
         ax.yaxis.set_major_locator(ticker.NullLocator())
@@ -170,7 +171,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
 
     #
     # 雲量の陰影を付ける値をlevelsrにリストとして入れる
-    levelsc = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    levelsc = np.arange(0, 100.1, 5)
     # 色テーブル取得
     cmapl = plt.get_cmap('Reds')  # 下層
     cmapm = plt.get_cmap('Greens')  # 中層
@@ -189,9 +190,9 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
     plt.title(title)
     #
     # val2colクラスの初期化（気温の範囲はtmin、tmaxで設定、tstepで刻み幅）
-    cbarh = val2col(cmap='Blues', tmin=0., tmax=1.001)
-    cbarm = val2col(cmap='Greens', tmin=0., tmax=1.001)
-    cbarl = val2col(cmap='Reds', tmin=0., tmax=1.001)
+    cbarh = val2col(cmap='Blues', tmin=0., tmax=100.1, tstep=20.)
+    cbarm = val2col(cmap='Greens', tmin=0., tmax=100.1, tstep=20.)
+    cbarl = val2col(cmap='Reds', tmin=0., tmax=100.1, tstep=20.)
     # カラーバーを付ける
     cbarh.colorbar(fig, anchor=(0.35, 0.24), size=(0.3, 0.02), label=False)
     cbarm.colorbar(fig, anchor=(0.35, 0.20), size=(0.3, 0.02), label=False)
