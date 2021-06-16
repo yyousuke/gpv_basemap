@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 from mpl_toolkits.basemap import Basemap, cm
-from jmaloc import MapRegion
+from jmaloc import AmedasStation
 from readgrib import ReadGSM
 from datetime import timedelta
 from pandas.plotting import register_matplotlib_converters
@@ -253,6 +253,13 @@ if __name__ == '__main__':
         gsm.set_fcst_time(fcst_time)
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = gsm.readnetcdf()
+        # グリッド番号の取得
+        if fcst_time == fcst_str:
+            ilon = get_gridloc(lons_1d, rlon)
+            ilat = get_gridloc(lats_1d, rlat)
+            print("lon grid, lat grid, lon, lat = ", ilon, ilat,
+                  np.array(lons_1d)[ilon],
+                  np.array(lats_1d)[ilat])
         # 変数取り出し
         # 海面更生気圧を二次元のndarrayで取り出す
         mslp = gsm.ret_var("PRMSL_meansealevel", fact=0.01)  # (hPa)

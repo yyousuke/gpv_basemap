@@ -18,10 +18,10 @@ class MapRegion():
            self.lon_min = 120.0
            self.lon_max = 150.0
            self.lat_step = 5
-           self.lat_min = 20.0
-           self.lat_max = 50.0
+           self.lat_min = 22.4
+           self.lat_max = 47.5
         # 北海道（北西部）
-        if sta == "Rumoe":
+        if sta == "Rumoi":
            self.lon_step = 1
            self.lon_min = 139.0
            self.lon_max = 146.0

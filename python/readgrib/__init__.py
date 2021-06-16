@@ -8,8 +8,8 @@ import urllib.request
 import netCDF4
 import numpy as np
 
-# 入力する気象庁MSMデータのファイルを置いたディレクトリ
-sys_file_dir = os.environ.get('DATADIR_MSM', '/data')
+# 入力する気象庁GPVデータのファイルを置いたディレクトリ
+sys_file_dir = os.environ.get('DATADIR_GPV', '/data')
 
 # URL
 url = "http://database.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original"
