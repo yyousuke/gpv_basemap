@@ -10,33 +10,27 @@ import urllib.request
 import netCDF4
 import matplotlib
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap, cm
+from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadMSM
-import warnings
-
-warnings.filterwarnings('ignore',
-                        category=matplotlib.MatplotlibDeprecationWarning)
-matplotlib.rcParams['figure.max_open_warning'] = 0
-input_dir_default = "retrieve"
-
-# 予報時刻からの経過時間、１時間毎に指定可能
-fcst_str = 0
-fcst_end = 36
-fcst_step = 1
-#
+from utils import ColUtils
+from utils import convert_png2gif
+from utils import convert_png2mp4
+from utils import parse_command
+from utils import post
+import utils.common
 
 ### Start Map Prog ###
 
 
-def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
+def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
             output_filename):
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
     if sta == "Japan":
         opt_c1 = False
-        cstp = 2
+        cstp = 1
         mres = "l"
         # 変数を指定(all)
         lon_step = 5
@@ -48,7 +42,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
     else:
         opt_c1 = True
-        cstp = 1
+        cstp = 2
         mres = "h"
         # Map.regionの変数を取得
         lon_step = region.lon_step
@@ -86,31 +80,31 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
     # 2hPaごとに線をひく
     levels = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
                    math.ceil(mslp.max()) + 1, 2)
-    # 1hPaごとに線をひく
-    levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 1)),
-                    math.ceil(mslp.max()) + 1, 1)
     # 等圧線をひく
     if opt_c1:
-        m.contour(x,
-                  y,
-                  mslp,
-                  levels=levels1,
-                  colors='k',
-                  linestyles=':',
-                  linewidths=0.8)
-        #m.contour(lons_1d, lats_1d, mslp, latlon=True, tri=True, levels=levels1, colors='k', linestyles=':', linewidths=0.8)
-    cr = m.contour(x, y, mslp, levels=levels, colors='k', linewidths=0.8)
-    #cr = m.contour(lons_1d, lats_1d, mslp, latlon=True, tri=True, levels=levels, colors='k', linewidths=0.8)
-    # ラベルを付ける
-    clevels = cr.levels
-    cr.clabel(clevels[::cstp], fontsize=12, fmt="%d")
+        # 1hPaごとに線をひく
+        levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
+                        math.ceil(mslp.max()) + 1, 1)
+        cr1 = m.contour(x,
+                        y,
+                        mslp,
+                        levels=levels1,
+                        colors='k',
+                        linestyles=['-', ':'],
+                        linewidths=0.8)
+        # ラベルを付ける
+        cr1.clabel(cr1.clevels[::cstp], fontsize=12, fmt="%d")
+    else:
+        cr2 = m.contour(x, y, mslp, levels=levels, colors='k', linewidths=0.8)
+        # ラベルを付ける
+        cr2.clabel(cr2.clevels[::cstp], fontsize=12, fmt="%d")
     #
     #
+    # 色テーブルの設定
+    cutils = ColUtils('wysiwyg')  # 色テーブルの選択
+    cmap = cutils.get_ctable(under='gray', over='r')  # 色テーブルの取得
     # 降水量の陰影を付ける値をlevelsrにリストとして入れる
     levelsr = [1, 5, 10, 20, 50, 80, 100, 200, 400, 600]
-    cmap = cm.GMT_wysiwyg  # 色テーブルの選択
-    cmap.set_over('r')  # 上限を超えた場合の色を指定
-    cmap.set_under('gray')  # 下限を下回った場合の色を指定
     # 陰影を描く
     cs = m.contourf(x, y, rain, levels=levelsr, cmap=cmap, extend='both')
     #cs=m.contourf(lons_1d,lats_1d,rain,latlon=True,tri=True,levels=levelsr,cmap=cmap,extend='both')
@@ -128,55 +122,17 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
     plt.close()
 
 
-#   plt.show()
-
 ### End Map Prog ###
-
-### options ###
-
-
-# オプションの読み込み
-def _construct_parser():
-    parser = argparse.ArgumentParser(
-        description='Matplotlib Basemap, weather map')
-
-    parser.add_argument('--fcst_date',
-                        type=str,
-                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-                        metavar='<fcstdate>')
-    parser.add_argument('--sta',
-                        type=str,
-                        help=('Station name; e.g. Japan, Tokyo,,,'),
-                        metavar='<sta>')
-    parser.add_argument(
-        '--input_dir',
-        type=str,
-        help=
-        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-         'if --input_dir force_retrieve, download original data from RISH server'
-         'if --input_dir retrieve, check avilable download (default)'),
-        metavar='<input_dir>')
-
-    return parser
-
-
-def _parse_command(args):
-    parser = _construct_parser()
-    parsed_args = parser.parse_args(args[1:])
-    if parsed_args.input_dir is None:
-        parsed_args.input_dir = input_dir_default
-    return parsed_args
-
-
-### options ###
 
 if __name__ == '__main__':
     # オプションの読み込み
-    args = _parse_command(sys.argv)
+    args = parse_command(sys.argv)
     # 予報時刻, 作図する地域の指定
     fcst_date = args.fcst_date
     sta = args.sta
     file_dir = args.input_dir
+    # 予報時刻からの経過時間
+    fcst_end = args.fcst_time
     # datetimeに変換
     tinfo = pd.to_datetime(fcst_date)
     #
@@ -209,10 +165,10 @@ if __name__ == '__main__':
     rain = rain_add.sum(axis=0)
     #
     # タイトルの設定
-    title = tlab + " forecast, +" + str(fcst_str) + "-" + str(
+    title = tlab + " MSM forecast, +" + "0-" + str(
         fcst_end) + "h rain & +" + str(fcst_end) + "h SLP"
     # 出力ファイル名の設定
-    output_filename = "map_msm_rain_sum" + str(fcst_str) + "-" + str(
+    output_filename = "map_msm_rain_sum" + "0-" + str(
         fcst_end) + "_" + sta + ".png"
-    plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
+    plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
             output_filename)

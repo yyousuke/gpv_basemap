@@ -10,25 +10,19 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap, cm
 from jmaloc import MapRegion
 from readgrib import ReadGSM
-import warnings
+from utils import ColUtils
+from utils import convert_png2gif
+from utils import parse_command
+from utils import post
+import utils.common
 
-warnings.filterwarnings('ignore',
-                        category=matplotlib.MatplotlibDeprecationWarning)
-matplotlib.rcParams['figure.max_open_warning'] = 0
-input_dir_default = "retrieve"
-
-# 予報時刻からの経過時間、１時間毎に指定可能
-fcst_str = 0
-fcst_end = 36
-fcst_step = 1
-#
 opt_stmp = False  # 等温線を引く（-2、2℃）
 
 ### Start Map Prog ###
 
 
-def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
-            uwnd, vwnd, wspd, title, output_filename):
+def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
+            title, output_filename):
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
@@ -36,7 +30,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
         opt_c1 = False
         opt_barbs = False
         bstp = 6
-        cstp = 2
+        cstp = 1
         mres = "l"
         # 変数を指定(all)
         lon_step = 5
@@ -50,7 +44,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
         opt_c1 = True
         opt_barbs = False
         bstp = 1
-        cstp = 1
+        cstp = 2
         mres = "h"
         # Map.regionの変数を取得
         lon_step = region.lon_step
@@ -86,79 +80,73 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
     #
     if opt_c1:
         # 等圧線をひく間隔(1hPaごと)をlevelsにリストとして入れる
-        levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 1)),
+        levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
                         math.ceil(mslp.max()) + 1, 1)
         # 等圧線をひく
-        m.contour(lons,
-                  lats,
-                  mslp,
-                  levels=levels1,
-                  colors='k',
-                  linestyles=':',
-                  linewidths=0.8)
-        #m.contour(lons_1d, lats_1d, mslp, latlon=True, tri=True, levels=levels1, colors='k', linestyles=':', linewidths=0.8)
-    # 等圧線をひく間隔(2hPaごと)をlevelsにリストとして入れる
-    levels2 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
-                    math.ceil(mslp.max()) + 1, 2)
-    # 等圧線をひく
-    cr2 = m.contour(lons,
-                    lats,
-                    mslp,
-                    levels=levels2,
-                    colors='k',
-                    linewidths=0.8)
-    #cr = m.contour(lons_1d, lats_1d, mslp, latlon=True, tri=True, levels=levels, colors='k', linewidths=0.8)
-    # ラベルを付ける
-    clevels2 = cr2.levels
-    cr2.clabel(clevels2[::cstp], fontsize=10, fmt="%d")
+        cr1 = m.contour(lons,
+                        lats,
+                        mslp,
+                        levels=levels1,
+                        colors='k',
+                        linestyles=['-', ':'],
+                        linewidths=1.2)
+        # ラベルを付ける
+        cr1.clabel(cr1.levels[::cstp], fontsize=10, fmt="%d")
+    else:
+        # 等圧線をひく間隔(2hPaごと)をlevelsにリストとして入れる
+        levels2 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
+                        math.ceil(mslp.max()) + 1, 2)
+        # 等圧線をひく
+        cr2 = m.contour(lons,
+                        lats,
+                        mslp,
+                        levels=levels2,
+                        colors='k',
+                        linewidths=1.2)
+        # ラベルを付ける
+        cr2.clabel(cr2.levels[::cstp], fontsize=10, fmt="%d")
     #
     if opt_stmp:
-        # 等温線を付ける値をlevelstにリストとして入れる（2℃）
-        levelst = [2]
         # 等温線をひく
         cr3 = m.contour(lons,
                         lats,
                         tmp,
-                        levels=levelst,
+                        levels=[2],
                         colors='cornflowerblue',
                         linestyles='-',
                         linewidths=0.8)
-        #cr3=m.contour(lons_1d, lats_1d, tmp, latlon=True, tri=True, levels=levelst, colors='cornflowerblue', linestyles='-', linewidths=0.8)
-        clevels3 = cr3.levels
-        cr3.clabel(clevels3[::1], fontsize=12, fmt="%d")
+        cr3.clabel(cr3.levels[::1], fontsize=12, fmt="%d")
         #
-        # 等温線を付ける値をlevelstにリストとして入れる（-2℃）
-        levelst = [-2]
         # 等温線をひく
         cr4 = m.contour(lons,
                         lats,
                         tmp,
-                        levels=levelst,
+                        levels=[-2],
                         colors='blue',
                         linestyles='-',
                         linewidths=0.8)
-        #cr4 = m.contour(lons_1d, lats_1d, tmp, latlon=True, tri=True, levels=levelst, colors='blue', linestyles='-', linewidths=0.8)
         # ラベルを付ける
-        clevels4 = cr4.levels
-        cr4.clabel(clevels4[::1], fontsize=12, fmt="%d")
+        cr4.clabel(cr4.levels[::1], fontsize=12, fmt="%d")
     #
+    # 色テーブルの設定
+    cutils = ColUtils('s3pcpn_l')  # 色テーブルの選択
+    cmap = cutils.get_ctable(under='gray', over='brown')  # 色テーブルの取得
     # 降水量の陰影を付ける値をlevelsrにリストとして入れる
     levelsr = [0.2, 1, 5, 10, 20, 50, 80, 100]
-    cmap = cm.s3pcpn_l  # 色テーブルの選択
-    cmap.set_over('brown')  # 上限を超えた場合の色を指定
-    cmap.set_under('gray')  # 下限を下回った場合の色を指定
     # 陰影を描く
     cs = m.contourf(lons, lats, rain, levels=levelsr, cmap=cmap, extend='both')
-    #cs=m.contourf(lons_1d,lats_1d,rain,latlon=True,tri=True,levels=levelsr,cmap=cmap,extend='both')
     # カラーバーを付ける
     cbar = m.colorbar(cs, location='bottom', pad="5%")
     cbar.set_label('precipitation (mm/hr)')
     #
     # 矢羽を描く
     if opt_barbs:
-        m.barbs(lons[::bstp,::bstp], lats[::bstp,::bstp], \
-                uwnd[::bstp,::bstp], vwnd[::bstp,::bstp], \
-                color='r', length=4,
+        m.barbs(lons[::bstp, ::bstp],
+                lats[::bstp, ::bstp],
+                uwnd[::bstp, ::bstp],
+                vwnd[::bstp, ::bstp],
+                color='r',
+                length=4,
                 sizes=dict(emptybarb=0.01, spacing=0.12, height=0.4))
     #
     # 海岸線を描く
@@ -171,74 +159,19 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
     plt.close()
 
 
-#   plt.show()
-
 ### End Map Prog ###
-
-### utils ###
-
-
-# convertを使い、pngからgifアニメーションに変換する
-def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
-    args = ["convert", "-delay", delay]
-    args.extend(input_filenames)
-    args.append(output_filename)
-    print(args)
-    # コマンドとオプション入出力ファイルのリストを渡し、変換の実行
-    res = subprocess.run(args=args,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    print(res.stdout.decode("utf-8"))
-    print(res.stderr.decode("utf-8"))
-
-
-### utils ###
-
-### options ###
-
-
-# オプションの読み込み
-def _construct_parser():
-    parser = argparse.ArgumentParser(
-        description='Matplotlib Basemap, weather map')
-
-    parser.add_argument('--fcst_date',
-                        type=str,
-                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-                        metavar='<fcstdate>')
-    parser.add_argument('--sta',
-                        type=str,
-                        help=('Station name; e.g. Japan, Tokyo,,,'),
-                        metavar='<sta>')
-    parser.add_argument(
-        '--input_dir',
-        type=str,
-        help=
-        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-         'if --input_dir force_retrieve, download original data from RISH server'
-         'if --input_dir retrieve, check avilable download (default)'),
-        metavar='<input_dir>')
-
-    return parser
-
-
-def _parse_command(args):
-    parser = _construct_parser()
-    parsed_args = parser.parse_args(args[1:])
-    if parsed_args.input_dir is None:
-        parsed_args.input_dir = input_dir_default
-    return parsed_args
-
-
-### options ###
 
 if __name__ == '__main__':
     # オプションの読み込み
-    args = _parse_command(sys.argv)
+    args = parse_command(sys.argv)
     # 予報時刻, 作図する地域の指定
     fcst_date = args.fcst_date
     sta = args.sta
     file_dir = args.input_dir
+    # 予報時刻からの経過時間（１時間毎に指定可能）
+    fcst_end = args.fcst_time
+    fcst_str = 0  # 開始時刻
+    fcst_step = 1  # 作図する間隔
     # datetimeに変換
     tinfo = pd.to_datetime(fcst_date)
     #
@@ -266,7 +199,6 @@ if __name__ == '__main__':
         uwnd = gsm.ret_var("UGRD_10maboveground")  # (m/s)
         # 南北風を二次元のndarrayで取り出す
         vwnd = gsm.ret_var("VGRD_10maboveground")  # (m/s)
-        wspd = np.sqrt(uwnd**2 + vwnd**2)
         # ファイルを閉じる
         gsm.close_netcdf()
         #
@@ -276,12 +208,12 @@ if __name__ == '__main__':
         hh = "{d:02d}".format(d=fcst_time)
         output_filename = "map_gsm_mslp_" + sta + "_" + str(hh) + ".png"
         # 作図
-        plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp,
-                uwnd, vwnd, wspd, title, output_filename)
+        plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
+                title, output_filename)
         output_filenames.append(output_filename)
-    # gifアニメーションのファイル名
-    output_gif_filename = "anim_gsm_mslp_" + sta + ".gif"
     # pngからgifアニメーションに変換
     convert_png2gif(input_filenames=output_filenames,
                     delay="80",
-                    output_filename=output_gif_filename)
+                    output_filename="anim_gsm_mslp_" + sta + ".gif")
+    # 後処理
+    post(output_filenames)

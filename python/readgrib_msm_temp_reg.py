@@ -7,27 +7,20 @@ import subprocess
 import argparse
 import matplotlib
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap, cm
+from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadMSM
-import warnings
-
-warnings.filterwarnings('ignore',
-                        category=matplotlib.MatplotlibDeprecationWarning)
-matplotlib.rcParams['figure.max_open_warning'] = 0
-input_dir_default = "retrieve"
-
-# 予報時刻からの経過時間、３時間毎に指定可能
-fcst_str = 0
-fcst_end = 36
-fcst_step = 3
-#
+from utils import ColUtils
+from utils import convert_png2gif
+from utils import parse_command
+from utils import post
+import utils.common
 
 ### Start Map Prog ###
 
 
-def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
-            tmp, rh, title, output_filename):
+def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
+            title, output_filename):
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
@@ -49,7 +42,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
         opt_c1 = True  # 1度の等温線を描く
         opt_barbs = True  # 矢羽を描く
         bstp = 2  # 矢羽を何個飛ばしに描くか
-        cstp = 1  # 等値線ラベルを何個飛ばしに付けるか
+        cstp = 3  # 等値線ラベルを何個飛ばしに付けるか
         mres = "h"  # 地図の解像度
         # Map.regionの変数を取得
         lon_step = region.lon_step
@@ -79,40 +72,39 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
                     labels=[True, False, False, False])
     #
     # 850 hPa 気温
-    # 等温線を描く値のリスト
-    levels_t = np.arange(-60, 61, 3)
-    # 等温線を描く
-    cr = m.contour(lons,
-                   lats,
-                   tmp,
-                   levels=levels_t,
-                   colors='k',
-                   linestyles='-',
-                   linewidths=0.8)
-    # ラベルを付ける
-    clevels = cr.levels
-    cr.clabel(clevels[::cstp], fontsize=12, fmt="%d")
     # 1度の等温線を描く
     if opt_c1:
-        # 等温線をひく間隔(1Kごと)をlevelsにリストとして入れる
-        levels1 = np.arange(-60, 61, 1)
-        #levels1 = range(math.floor(tmp.min()-math.fmod(tmp.min(),1)), math.ceil(tmp.max())+1,1)
+        # 等温線を描く値のリスト（1Kごと）
+        levels_t = np.arange(-60, 61, 1)
+        # 等温線をひく
+        cr1 = m.contour(lons,
+                        lats,
+                        tmp,
+                        levels=levels_t,
+                        colors='k',
+                        linestyles=['-', ':', ':'],
+                        linewidths=[1.2, 0.8, 0.8])
+        cr1.clabel(cr1.levels[::cstp], fontsize=12, fmt="%d")
+    else:
+        # 等温線を描く値のリスト（3Kごと）
+        levels_t = np.arange(-60, 61, 3)
         # 等温線をひく
         cr2 = m.contour(lons,
                         lats,
                         tmp,
-                        levels=levels1,
+                        levels=levels_t,
                         colors='k',
-                        linestyles=':',
-                        linewidths=0.8)
-        cr2.clabel(clevels[::cstp], fontsize=12, fmt="%d")
+                        linestyles='-',
+                        linewidths=1.2)
+        cr2.clabel(cr2.levels[::cstp], fontsize=12, fmt="%d")
+
     #
     # 850 hPa 相対湿度
     # 陰影を描く値のリスト
     levels_r = [60, 75, 80, 90, 100]
     # 色テーブルの設定
-    cmap = cm.GMT_drywet  # 色テーブルの選択
-    cmap.set_under('w', alpha=0)
+    cutils = ColUtils('drywet')  # 色テーブルの選択
+    cmap = cutils.get_ctable(under='w')  # 色テーブルの取得
     # 陰影を描く
     cs = m.contourf(lons, lats, rh, levels=levels_r, cmap=cmap, extend='min')
     # カラーバーを付ける
@@ -137,81 +129,20 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
     plt.close()
 
 
-#   plt.show()
-
 ### End Map Prog ###
-
-### utils ###
-
-
-# convertを使い、pngからgifアニメーションに変換する
-def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
-    args = ["convert", "-delay", delay]
-    args.extend(input_filenames)
-    args.append(output_filename)
-    print(args)
-    # コマンドとオプション入出力ファイルのリストを渡し、変換の実行
-    res = subprocess.run(args=args,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    print(res.stdout.decode("utf-8"))
-    print(res.stderr.decode("utf-8"))
-
-
-### utils ###
-
-### options ###
-
-
-# オプションの読み込み
-def _construct_parser():
-    parser = argparse.ArgumentParser(
-        description='Matplotlib Basemap, weather map')
-
-    parser.add_argument('--fcst_date',
-                        type=str,
-                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-                        metavar='<fcstdate>')
-    parser.add_argument('--sta',
-                        type=str,
-                        help=('Station name; e.g. Japan, Tokyo,,,'),
-                        metavar='<sta>')
-    parser.add_argument('--level',
-                        type=str,
-                        help=('level (hPa); e.g. 925, 850, 700, 500,,,'),
-                        metavar='<level>')
-    parser.add_argument(
-        '--input_dir',
-        type=str,
-        help=
-        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-         'if --input_dir force_retrieve, download original data from RISH server'
-         'if --input_dir retrieve, check avilable download (default)'),
-        metavar='<input_dir>')
-
-    return parser
-
-
-def _parse_command(args):
-    parser = _construct_parser()
-    parsed_args = parser.parse_args(args[1:])
-    if parsed_args.input_dir is None:
-        parsed_args.input_dir = input_dir_default
-    if parsed_args.level is None:
-        parsed_args.level = 850
-    return parsed_args
-
-
-### options ###
 
 if __name__ == '__main__':
     # オプションの読み込み
-    args = _parse_command(sys.argv)
+    args = parse_command(sys.argv, opt_lev=True)
     # 予報時刻、作図する地域、高度の指定
     fcst_date = args.fcst_date
     sta = args.sta
     file_dir = args.input_dir
     level = args.level
+    # 予報時刻からの経過時間（3時間毎に指定可能）
+    fcst_end = args.fcst_time
+    fcst_str = 0  # 開始時刻
+    fcst_step = 3  # 作図する間隔
     # datetimeに変換
     tinfo = pd.to_datetime(fcst_date)
     #
@@ -253,12 +184,13 @@ if __name__ == '__main__':
         output_filename = "map_msm_temp_" + str(
             level) + "hPa_" + sta + "_" + str(hh) + ".png"
         # 作図
-        plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd,
-                tmp, rh, title, output_filename)
+        plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
+                title, output_filename)
         output_filenames.append(output_filename)
-    # gifアニメーションのファイル名
-    output_gif_filename = "anim_msm_temp_" + str(level) + "hPa_" + sta + ".gif"
     # pngからgifアニメーションに変換
     convert_png2gif(input_filenames=output_filenames,
                     delay="80",
-                    output_filename=output_gif_filename)
+                    output_filename="anim_msm_temp_" + str(level) + "hPa_" +
+                    sta + ".gif")
+    # 後処理
+    post(output_filenames)

@@ -3,35 +3,20 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import subprocess
-import argparse
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import matplotlib.ticker as ticker
-from mpl_toolkits.basemap import Basemap, cm
+import matplotlib.ticker as mticker
 from jmaloc import AmedasStation
 from readgrib import ReadMSM
 from datetime import timedelta
-from pandas.plotting import register_matplotlib_converters
+from utils import parse_command
+from utils import get_gridloc
+import utils.common
 
-register_matplotlib_converters()
-import warnings
-
-warnings.filterwarnings('ignore',
-                        category=matplotlib.MatplotlibDeprecationWarning)
-matplotlib.rcParams['figure.max_open_warning'] = 0
 plt.rcParams['xtick.direction'] = 'in'  # x軸目盛線を内側
 plt.rcParams['xtick.major.width'] = 1.2  # x軸主目盛線の長さ
 plt.rcParams['ytick.direction'] = 'in'  # y軸目盛線を内側
 plt.rcParams['ytick.major.width'] = 1.2  # y軸主目盛線の長さ
-input_dir_default = "retrieve"
-
-# 予報時刻からの経過時間、１時間毎に指定可能
-# この期間の時系列を作成
-fcst_str = 0
-fcst_end = 36
-fcst_step = 1
 
 #1.1:0:grid_template=0:winds(N/S):
 #  lat-lon grid:(481 x 505) units 1e-06 input WE:NS output WE:SN res 48
@@ -45,15 +30,15 @@ barbs_kt = True  # true: kt, false: m/s
 ### Start Map Prog ###
 
 
-def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
+def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
+            title, output_filename):
     #
     # 作図
     # (0) プロットエリアの定義
-    #fig, ax1 = plt.subplots()
-    fig = plt.figure(figsize=(6, 6))
+    fig = plt.figure(figsize=(10, 10))
     ax1 = fig.add_subplot(3, 1, 1)
     # タイトルを付ける
-    plt.title(title)
+    plt.title(title, fontsize=20)
 
     # (1) 降水量と気温
     # (1-1) 降水量(mm)
@@ -91,8 +76,16 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     if plt_barbs:
         if barbs_kt:
             # kt
-            ax3.barbs(index, y, uwnd, vwnd, color='k', length=5, sizes=dict(emptybarb=0.001), \
-            barb_increments=dict(half=2.57222, full=5.14444, flag=25.7222))
+            ax3.barbs(index,
+                      y,
+                      uwnd,
+                      vwnd,
+                      color='k',
+                      length=5,
+                      sizes=dict(emptybarb=0.001),
+                      barb_increments=dict(half=2.57222,
+                                           full=5.14444,
+                                           flag=25.7222))
         else:
             # m/s
             ax3.barbs(index,
@@ -103,7 +96,8 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
                       length=5,
                       sizes=dict(emptybarb=0.001))
     #
-    # (3) 地表気圧（hPa）
+    # (3) 地表気圧と気温
+    # (3-1) 地表気圧（hPa）
     ax5 = fig.add_subplot(3, 1, 3)
     #
     ax5.set_ylim([
@@ -112,7 +106,7 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     ])
     ax5.plot(index, mslp, color='k', label='Pressure')
     ax5.set_ylabel('pressure (hPa)')
-    #ax5.set_xlabel('Hour')
+    #
     # 凡例
     ax5.legend(loc='upper left')
     #
@@ -132,33 +126,35 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
     ax6.legend(loc='lower left')
     #
     # y軸の目盛り
-    ax1.yaxis.set_major_locator(ticker.AutoLocator())
-    ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax2.yaxis.set_major_locator(ticker.AutoLocator())
-    ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax3.yaxis.set_major_locator(ticker.AutoLocator())
-    ax3.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax5.yaxis.set_major_locator(ticker.AutoLocator())
-    ax5.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax6.yaxis.set_major_locator(ticker.AutoLocator())
-    ax6.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+    ax1.yaxis.set_major_locator(mticker.AutoLocator())
+    ax1.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax2.yaxis.set_major_locator(mticker.AutoLocator())
+    ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax3.yaxis.set_major_locator(mticker.AutoLocator())
+    ax3.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax5.yaxis.set_major_locator(mticker.AutoLocator())
+    ax5.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax6.yaxis.set_major_locator(mticker.AutoLocator())
+    ax6.yaxis.set_minor_locator(mticker.AutoMinorLocator())
     #
     # x軸の目盛り
-    ax1.xaxis.set_major_locator(ticker.AutoLocator())
-    ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax3.xaxis.set_major_locator(ticker.AutoLocator())
-    ax3.xaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax5.xaxis.set_major_locator(ticker.AutoLocator())
-    ax5.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+    ax1.xaxis.set_major_locator(mticker.AutoLocator())
+    ax1.xaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax3.xaxis.set_major_locator(mticker.AutoLocator())
+    ax3.xaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax5.xaxis.set_major_locator(mticker.AutoLocator())
+    ax5.xaxis.set_minor_locator(mticker.AutoMinorLocator())
     #
-    ax1.xaxis.set_major_formatter(ticker.NullFormatter())
-    ax1.xaxis.set_minor_formatter(ticker.NullFormatter())
-    ax3.xaxis.set_major_formatter(ticker.NullFormatter())
-    ax3.xaxis.set_minor_formatter(ticker.NullFormatter())
+    ax1.xaxis.set_major_formatter(mticker.NullFormatter())
+    ax1.xaxis.set_minor_formatter(mticker.NullFormatter())
+    ax3.xaxis.set_major_formatter(mticker.NullFormatter())
+    ax3.xaxis.set_minor_formatter(mticker.NullFormatter())
     #
+    ax5.xaxis.set_major_locator(mticker.FixedLocator(
+        ax5.get_xticks().tolist()))
     ax5.set_xticklabels(ax5.get_xticklabels(), rotation=70, size="small")
     ax5.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d %HUTC'))
-    ax5.xaxis.set_minor_formatter(ticker.NullFormatter())
+    ax5.xaxis.set_minor_formatter(mticker.NullFormatter())
     #
     # プロット範囲の調整
     plt.subplots_adjust(top=None, bottom=0.15, wspace=0.25, hspace=0.15)
@@ -172,80 +168,17 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt):
 
 ### End Map Prog ###
 
-### options ###
-
-
-# オプションの読み込み
-def _construct_parser():
-    parser = argparse.ArgumentParser(
-        description='Matplotlib Basemap, weather map')
-
-    parser.add_argument('--fcst_date',
-                        type=str,
-                        help=('forecast date; yyyymmddhhMMss, or ISO date'),
-                        metavar='<fcstdate>')
-    parser.add_argument('--sta',
-                        type=str,
-                        help=('Station name; e.g. Japan, Tokyo,,,'),
-                        metavar='<sta>')
-    parser.add_argument(
-        '--input_dir',
-        type=str,
-        help=
-        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-         'if --input_dir force_retrieve, download original data from RISH server'
-         'if --input_dir retrieve, check avilable download (default)'),
-        metavar='<input_dir>')
-
-    return parser
-
-
-def _parse_command(args):
-    parser = _construct_parser()
-    parsed_args = parser.parse_args(args[1:])
-    if parsed_args.input_dir is None:
-        parsed_args.input_dir = input_dir_default
-    return parsed_args
-
-
-### options ###
-
 if __name__ == '__main__':
     # オプションの読み込み
-    args = _parse_command(sys.argv)
+    args = parse_command(sys.argv)
     # 予報時刻, 作図する地域の指定
     fcst_date = args.fcst_date
     sta = args.sta
     file_dir = args.input_dir
-    # datetimeに変換
-    tinfo = pd.to_datetime(fcst_date)
-    #
-    tsel = tinfo.strftime("%Y%m%d%H%M%S")
-    tlab = tinfo.strftime("%m/%d %H UTC")
-    #
-    # タイトルの設定
-    title = tlab + " MSM forecast, +" + str(fcst_str) + "-" + str(fcst_end)
-    # オプションの読み込み
-    args = _parse_command(sys.argv)
-    # 予報時刻, 作図する地域の指定
-    fcst_date = args.fcst_date
-    sta = args.sta
-    file_dir = args.input_dir
-    # 作図する地域の指定
-    if sta == "Tokyo":
-        ilon = 316
-        ilat = 238
-        #rlon=139.75
-        #rlat=35.692
-    elif sta == "Yokohama":
-        ilon = 314  #lon =  139.625
-        ilat = 243  #lat =  35.45
-        #rlon=139.65
-        #rlat=35.438
-    else:
-        print("not supported yet: sta =", sta)
-        quit()
-    #
+    # 予報時刻からの経過時間（１時間毎に指定可能）
+    fcst_end = args.fcst_time
+    fcst_str = 0  # 開始時刻
+    fcst_step = 1  # 作図する間隔
     # datetimeに変換
     tinfo = pd.to_datetime(fcst_date)
     #
@@ -259,6 +192,7 @@ if __name__ == '__main__':
     amedas = AmedasStation()
     rlon, rlat = amedas.get_staloc(en_name=sta)
     print(sta, ": lon, lat = ", rlon, rlat)
+    #
     #
     # 時系列データの準備
     index_add = []
@@ -286,6 +220,7 @@ if __name__ == '__main__':
             print("lon grid, lat grid, lon, lat = ", ilon, ilat,
                   np.array(lons_1d)[ilon],
                   np.array(lats_1d)[ilat])
+        #
         # 変数取り出し
         # 海面更生気圧を二次元のndarrayで取り出す
         mslp = msm.ret_var("PRMSL_meansealevel", fact=0.01)  # (hPa)
@@ -321,13 +256,15 @@ if __name__ == '__main__':
         msm.close_netcdf()
         #
     #
+    # タイトルの設定
+    title = tlab + " MSM forecast, +" + str(fcst_str) + "-" + str(fcst_end)
+    #
     # 出力ファイル名の設定
     output_filename = "map_tvar_msm_" + str(fcst_str) + "-" + str(
         fcst_end) + "_" + sta + ".png"
     nt = len(index_add)
 
     index = np.vstack(index_add).reshape(nt)
-    rain = np.vstack(rain_add).reshape(nt)
     mslp = np.vstack(mslp_add).reshape(nt)
     rain = np.vstack(rain_add).reshape(nt)
     temp = np.vstack(temp_add).reshape(nt)
@@ -341,4 +278,5 @@ if __name__ == '__main__':
     print(rain.shape)
     #
     # 作図
-    plotmap(index, mslp, rain, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt)
+    plotmap(index, mslp, rain, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
+            title, output_filename)
