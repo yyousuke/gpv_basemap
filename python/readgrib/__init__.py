@@ -12,7 +12,8 @@ import numpy as np
 sys_file_dir = os.environ.get('DATADIR_GPV', '/data')
 
 # URL
-url = "http://database.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original"
+url = "https://database3.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original"
+#url = "http://database.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original"
 
 ### utils ###
 
