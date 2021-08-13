@@ -7,6 +7,20 @@ import numpy as np
 
 
 class val2col():
+    """カラーマップの設定
+
+    Parameters:
+    ----------
+    tmin: float
+        カラーマップの下限
+    tmax: float
+        カラーマップの上限
+    tstep: float
+        カラーマップのラベルを描く間隔
+    cmap: str
+        色テーブルの名前
+    ----------
+    """
     def __init__(self, tmin=0., tmax=1., tstep=0.2, cmap='jet'):
         self.tmin = tmin
         self.tmax = tmax
@@ -14,8 +28,21 @@ class val2col():
         self.cmap = cmap
         self.cm = plt.get_cmap(self.cmap)
 
-    def conv(self, temp):
-        n = (temp - self.tmin) / (self.tmax - self.tmin) * self.cm.N
+    def conv(self, val):
+        """データをカラーに変換
+
+        Parameters:
+        ----------
+        val: float
+            データ
+        ----------
+        Returns:
+        ----------
+        cmap
+            カラーマップ
+        ----------
+        """
+        n = (val - self.tmin) / (self.tmax - self.tmin) * self.cm.N
         n = max(min(n, self.cm.N), 0)
         return self.cm(int(n))
 
@@ -25,6 +52,20 @@ class val2col():
                  size=(0.3, 0.02),
                  fmt="{f:.0f}",
                  label=True):
+        """カラーバーを描く
+
+        Parameters:
+        ----------
+        fig: matplotlib Figure
+            プロット領域を作成した際の戻り値
+        anchor: tuple(float, float)
+            カラーバーの位置
+        size: tuple(float, float)
+            カラーバーの大きさ
+        fmt: str
+            カラーバーのメモリ線ラベルの書式
+        ----------
+        """
         if fig is None:
             raise Exception('fig is needed')
         ax = fig.add_axes(anchor + size)
@@ -57,6 +98,26 @@ class val2col():
                ha='right',
                va='bottom',
                fontsize=10):
+        """カラーバーにラベルを付ける
+
+        Parameters:
+        ----------
+        fig: matplotlib Figure
+            プロット領域を作成した際の戻り値
+        anchor: tuple(float, float)
+            カラーバーラベルの位置
+        size: tuple(float, float)
+            カラーバーラベルの大きさ
+        text: str
+            カラーバーラベルに描く文字列
+        ha: str
+            カラーバーラベルの水平位置の揃え方
+        va: str
+            カラーバーラベルの鉛直位置の揃え方
+        fontsize: int
+            カラーバーラベルの文字サイズ
+        ----------
+        """
         if fig is None:
             raise Exception('fig is needed')
         ax = fig.add_axes(anchor + size)
