@@ -4,6 +4,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+from .cutil import ColUtils
 
 
 class val2col():
@@ -27,6 +28,11 @@ class val2col():
         self.tstep = tstep
         self.cmap = cmap
         self.cm = plt.get_cmap(self.cmap)
+        try:
+            self.cm = plt.get_cmap(self.cmap)
+        except:
+            cutils = ColUtils(cmap)  # 色テーブルの選択
+            self.cm = cutils.get_ctable()  # 色テーブルの取得
 
     def conv(self, val):
         """データをカラーに変換
@@ -63,7 +69,9 @@ class val2col():
         size: tuple(float, float)
             カラーバーの大きさ
         fmt: str
-            カラーバーのメモリ線ラベルの書式
+            カラーバーの目盛り線ラベルの書式
+        label: bool
+            カラーバーの目盛り線ラベルを描くかどうか
         ----------
         """
         if fig is None:
