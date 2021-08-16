@@ -155,6 +155,10 @@ def _construct_parser(opt_lev=False):
 def parse_command(args, opt_lev=False):
     parser = _construct_parser(opt_lev)
     parsed_args = parser.parse_args(args[1:])
+    if parsed_args.fcst_date is None:
+        raise ValueError("fcst_date is needed")
+    if parsed_args.sta is None:
+        raise ValueError("sta is needed")
     if parsed_args.input_dir is None:
         parsed_args.input_dir = input_dir_default
     if parsed_args.fcst_time is None:
