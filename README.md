@@ -43,7 +43,8 @@ wgrib2 入力ファイル.bin -netcdf 出力ファイル.nc
 で変換したNetCDFファイル
 
 
-ダウンロードしたファイルを置いたディレクトリを、DATADIR_GPVという環境変数にしておくこともできる。
+ダウンロードしたファイルを置いたディレクトリを、DATADIR_GPVという環境変数に格納しておくと、そのディレクトリにあるファイルを読みにいく。
+
 export DATADIR_GPV=${HOME}/Downloads
 
 
