@@ -18,12 +18,31 @@ url = "https://database3.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original"
 ### utils ###
 
 
-# gribファイル
-def ret_grib(tsel, file_name_g2, file_name_nc, force=False):
+def _ret_grib(tsel, file_name_g2, file_name_nc, force=False):
+    """ grib2ファイルをダウンロードし、NetCDFファイルに変換する
+
+    Parameters:
+    ----------
+    tsel: str
+        取得する時刻（形式：20210819120000）
+    file_name_g2: str
+        grib2ファイル名
+    file_name_nc: str
+        NetCDFファイル名
+    force: bool
+       ファイルが存在しても再取得するかどうか
+    ----------
+    Returns 
+    ----------    
+    file_dir_name: str
+        変換したNetCDFファイル名
+    ----------
+    """
     # files for search
     file_dir_names = [
-        file_name_nc, file_name_g2, sys_file_dir + "/" + file_name_nc,
-        sys_file_dir + "/" + file_name_g2
+        file_name_nc, file_name_g2,
+        os.path.join(sys_file_dir, file_name_nc),
+        os.path.join(sys_file_dir, file_name_g2)
     ]
     file_dir_convs = [False, True, False, True]
     opt_retrieve = True
@@ -42,8 +61,7 @@ def ret_grib(tsel, file_name_g2, file_name_nc, force=False):
         urllib.request.urlretrieve(url_dir_file, file_name_g2)
         file_dir_name = file_name_g2
         if not os.path.isfile(file_name_g2):
-            print("Download failed...")
-            quit()
+            raise IOError("Download failed, " + file_name_g2)
     #
     # convert
     if opt_convert:
@@ -54,8 +72,7 @@ def ret_grib(tsel, file_name_g2, file_name_nc, force=False):
         print(res.stdout.decode("utf-8"))
         file_dir_name = file_name_nc
         if not os.path.isfile(file_name_nc):
-            print("Convert failed...")
-            quit()
+            raise IOError("Convert failed, " + file_name_nc)
     return file_dir_name
 
 
@@ -65,8 +82,29 @@ def ret_grib(tsel, file_name_g2, file_name_nc, force=False):
 #  ${WGET} ${URL}/${dir}/${file} >> ${log} 2>&1 || exit 1
 #  ${WGRIB2} ${file} -netcdf ${nc} >> ${log} 2>&1 || exit 1
 #
-# netCDFファイルを読み込む(surf)
-def readnetcdf_msm_surf(msm_dir, fcst_time, tsel):
+def _netcdf_msm_surf(msm_dir, fcst_time, tsel):
+    """netCDFファイルを読み込む(MSM、surf)
+
+    Parameters:
+    ----------
+    msm_dir: str
+        MSMデータを置いたディレクトリ、またはretrieve、force_retrieve
+        retrieve：データ取得を行う。既に存在している場合は取得しない。
+        force_retrieve：データ取得を行う。既に存在している場合にも再取得する。
+        ディレクトリ名：新たにデータ取得は行わず、指定ディレクトリにあるNetCDFファイル名を返す
+    fcst_time: int
+        予報時刻
+    tsel: str
+        ファイル名に含まれる時刻部分
+    ----------
+    Returns 
+    ----------    
+    rec_num: int
+        予報時刻に相当するデータ番号
+    file_dir_name: str
+        変換したNetCDFファイル名
+    ----------
+    """
     if fcst_time <= 15:
         fcst_flag = "00-15"
         rec_num = fcst_time
@@ -83,18 +121,21 @@ def readnetcdf_msm_surf(msm_dir, fcst_time, tsel):
         fcst_flag) + "_grib2.nc"
     #
     if msm_dir == "retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=False)
+        file_dir_name = _ret_grib(tsel,
+                                  file_name_g2,
+                                  file_name_nc,
+                                  force=False)
     elif msm_dir == "force_retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=True)
+        file_dir_name = _ret_grib(tsel, file_name_g2, file_name_nc, force=True)
         msm_dir = "retrieve"
     else:
-        file_dir_name = msm_dir + "/" + file_name_nc
+        file_dir_name = os.path.join(msm_dir, file_name_nc)
     return rec_num, file_dir_name
 
 
 #
-# netCDFファイルを読み込む(pres)
-def readnetcdf_msm_plev(msm_dir, fcst_time, tsel):
+def _netcdf_msm_plev(msm_dir, fcst_time, tsel):
+    """netCDFファイルを読み込む(MSM、pres)"""
     if fcst_time <= 15:
         fcst_flag = "00-15"
         rec_num = fcst_time // 3
@@ -111,18 +152,21 @@ def readnetcdf_msm_plev(msm_dir, fcst_time, tsel):
         fcst_flag) + "_grib2.nc"
     #
     if msm_dir == "retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=False)
+        file_dir_name = _ret_grib(tsel,
+                                  file_name_g2,
+                                  file_name_nc,
+                                  force=False)
     elif msm_dir == "force_retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=True)
+        file_dir_name = _ret_grib(tsel, file_name_g2, file_name_nc, force=True)
         msm_dir = "retrieve"
     else:
-        file_dir_name = msm_dir + "/" + file_name_nc
+        file_dir_name = os.path.join(msm_dir, file_name_nc)
     return rec_num, file_dir_name
 
 
 #
-# netCDFファイルを読み込む(gsm, surf)
-def readnetcdf_gsm_surf(gsm_dir, fcst_time, tsel):
+def _netcdf_gsm_surf(gsm_dir, fcst_time, tsel):
+    """netCDFファイルを読み込む(GSM、surf)"""
     if fcst_time <= 84:  # 1h毎
         fcst_flag = "0000-0312"
         rec_num = fcst_time
@@ -139,18 +183,21 @@ def readnetcdf_gsm_surf(gsm_dir, fcst_time, tsel):
         fcst_flag) + "_grib2.nc"
     #
     if gsm_dir == "retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=False)
+        file_dir_name = _ret_grib(tsel,
+                                  file_name_g2,
+                                  file_name_nc,
+                                  force=False)
     elif gsm_dir == "force_retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=True)
+        file_dir_name = _ret_grib(tsel, file_name_g2, file_name_nc, force=True)
         gsm_dir = "retrieve"
     else:
-        file_dir_name = gsm_dir + "/" + file_name_nc
+        file_dir_name = os.path.join(gsm_dir, file_name_nc)
     return rec_num, file_dir_name
 
 
 #
-# netCDFファイルを読み込む(gsm, pres)
-def readnetcdf_gsm_plev(gsm_dir, fcst_time, tsel):
+def _netcdf_gsm_plev(gsm_dir, fcst_time, tsel):
+    """netCDFファイルを読み込む(GSM、pres)"""
     if fcst_time <= 84:
         fcst_flag = "0000-0312"
         rec_num = fcst_time // 3
@@ -167,12 +214,15 @@ def readnetcdf_gsm_plev(gsm_dir, fcst_time, tsel):
         fcst_flag) + "_grib2.nc"
     #
     if gsm_dir == "retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=False)
+        file_dir_name = _ret_grib(tsel,
+                                  file_name_g2,
+                                  file_name_nc,
+                                  force=False)
     elif gsm_dir == "force_retrieve":
-        file_dir_name = ret_grib(tsel, file_name_g2, file_name_nc, force=True)
+        file_dir_name = _ret_grib(tsel, file_name_g2, file_name_nc, force=True)
         gsm_dir = "retrieve"
     else:
-        file_dir_name = gsm_dir + "/" + file_name_nc
+        file_dir_name = os.path.join(gsm_dir, file_name_nc)
     return rec_num, file_dir_name
 
 
@@ -182,30 +232,53 @@ def readnetcdf_gsm_plev(gsm_dir, fcst_time, tsel):
 
 
 class ReadMSM():
-    def __init__(self, tsel, msm_dir, msm_lev):
+    """MSMデータを取得し、ndarrayに変換する
+
+    Parameters:
+    ----------
+    tsel: str
+        取得する時刻（形式：20210819120000）
+    msm_dir_path: str
+        MSMデータのあるディレクトリのパス
+    msm_lev: str
+        <surf/plev>：surfなら表面データ、plevなら気圧面データ
+    ----------
+    """
+    def __init__(self, tsel=None, msm_dir=None, msm_lev=None):
         self.tsel = tsel
         self.msm_dir = msm_dir
         self.msm_lev = msm_lev
         self.fcst_time = -1
         self.rec_num = -1
         self.nc = None
+        # 入力チェック
+        if tsel is None:
+            raise ValueError("tsel is needed")
+        if msm_dir is None:
+            raise ValueError("msm_dir is needed")
         if msm_lev == "surf" or msm_lev == "plev":
             print("data lev =", msm_lev, ", fcst_time =", tsel)
         else:
-            print("not supported: msm_lev =", msm_lev)
-            quit()
+            raise ValueError("msm_lev must be surf of plev, not", msm_lev)
 
-    # fcst_timeの設定
     def set_fcst_time(self, fcst_time):
+        """fcst_timeの設定"""
         self.fcst_time = fcst_time
 
-    # fcst_timeの取得
     def get_fcst_time(self):
+        """fcst_timeの取得"""
         return self.fcst_time
 
     #
-    # netCDFファイルを読み込む
     def readnetcdf(self):
+        """netCDFファイルを読み込み、緯度・経度情報を返す
+        
+        Returns 
+        ----------
+        lons_1d, lats_1d, lons, lats: ndarray
+            経度（1次元）、緯度（1次元）、経度（2次元）、緯度（2次元）
+        ----------
+        """
         tsel = self.tsel
         msm_dir = self.msm_dir
         msm_lev = self.msm_lev
@@ -213,11 +286,9 @@ class ReadMSM():
         # fcst_timeに対応した表面(surf)か気圧面(plev)データ名取得
         # 必要ならgribからNetcdfへの変換を行う
         if msm_lev == "surf":
-            rec_num, file_dir_name = readnetcdf_msm_surf(
-                msm_dir, fcst_time, tsel)
+            rec_num, file_dir_name = _netcdf_msm_surf(msm_dir, fcst_time, tsel)
         elif msm_lev == "plev":
-            rec_num, file_dir_name = readnetcdf_msm_plev(
-                msm_dir, fcst_time, tsel)
+            rec_num, file_dir_name = _netcdf_msm_plev(msm_dir, fcst_time, tsel)
         self.rec_num = rec_num
         #
         # NetCDFデータの読み込み
@@ -239,8 +310,22 @@ class ReadMSM():
         return lons_1d, lats_1d, lons, lats
 
     #
-    # 中に含まれているデータを二次元のndarrayで取り出す
     def ret_var(self, var_name, fact=1.0, offset=0.0):
+        """netCDFファイルに含まれているデータを二次元のndarrayで取り出す
+        
+        Parameters:
+        ----------
+        fact: float
+            データに掛けるスケールファクター
+        offset: float
+            データに足すオフセット値
+        ----------
+        Returns 
+        ----------
+        d: ndarray
+            取り出した2次元データ
+        ----------
+        """
         fcst_time = self.fcst_time
         rec_num = self.rec_num
         nc = self.nc
@@ -264,8 +349,8 @@ class ReadMSM():
         return d
 
     #
-    # Netcdfファイルを閉じる
     def close_netcdf(self):
+        """netCDFファイルを閉じる"""
         nc = self.nc
         nc.close()
 
@@ -274,30 +359,54 @@ class ReadMSM():
 
 
 class ReadGSM():
-    def __init__(self, tsel, gsm_dir, gsm_lev):
+    """GSMデータを取得し、ndarrayに変換する
+
+    Parameters:
+    ----------
+    tsel: str
+        取得する時刻（形式：20210819120000）
+    gsm_dir_path: str
+        GSMデータのあるディレクトリのパス
+    gsm_lev: str
+        <surf/plev>：surfなら表面データ、plevなら気圧面データ
+    ----------
+    """
+    def __init__(self, tsel=None, gsm_dir=None, gsm_lev=None):
         self.tsel = tsel
         self.gsm_dir = gsm_dir
         self.gsm_lev = gsm_lev
         self.fcst_time = -1
         self.rec_num = -1
         self.nc = None
+        # 入力チェック
+        if tsel is None:
+            raise ValueError("tsel is needed")
+        if gsm_dir is None:
+            raise ValueError("gsm_dir is needed")
         if gsm_lev == "surf" or gsm_lev == "plev":
             print("data lev =", gsm_lev, ", fcst_time =", tsel)
         else:
-            print("not supported: gsm_lev =", gsm_lev)
-            quit()
+            raise ValueError("gsm_lev must be surf of plev, not", gsm_lev)
 
-    # fcst_timeの設定
     def set_fcst_time(self, fcst_time):
+        """fcst_timeの設定"""
         self.fcst_time = fcst_time
 
     # fcst_timeの取得
     def get_fcst_time(self):
+        """fcst_timeの取得"""
         return self.fcst_time
 
     #
-    # netCDFファイルを読み込む
     def readnetcdf(self):
+        """netCDFファイルを読み込み、緯度・経度情報を返す
+        
+        Returns 
+        ----------
+        lons_1d, lats_1d, lons, lats: ndarray
+            経度（1次元）、緯度（1次元）、経度（2次元）、緯度（2次元）
+        ----------
+        """
         tsel = self.tsel
         gsm_dir = self.gsm_dir
         gsm_lev = self.gsm_lev
@@ -305,11 +414,9 @@ class ReadGSM():
         # fcst_timeに対応した表面(surf)か気圧面(plev)データ名取得
         # 必要ならgribからNetcdfへの変換を行う
         if gsm_lev == "surf":
-            rec_num, file_dir_name = readnetcdf_gsm_surf(
-                gsm_dir, fcst_time, tsel)
+            rec_num, file_dir_name = _netcdf_gsm_surf(gsm_dir, fcst_time, tsel)
         elif gsm_lev == "plev":
-            rec_num, file_dir_name = readnetcdf_gsm_plev(
-                gsm_dir, fcst_time, tsel)
+            rec_num, file_dir_name = _netcdf_gsm_plev(gsm_dir, fcst_time, tsel)
         self.rec_num = rec_num
         #
         # NetCDFデータの読み込み
@@ -331,8 +438,24 @@ class ReadGSM():
         return lons_1d, lats_1d, lons, lats
 
     #
-    # 中に含まれているデータを二次元のndarrayで取り出す
     def ret_var(self, var_name, fact=1.0, offset=0.0, cum_rain=False):
+        """netCDFファイルに含まれているデータを二次元のndarrayで取り出す
+        
+        Parameters:
+        ----------
+        fact: float
+            データに掛けるスケールファクター
+        offset: float
+            データに足すオフセット値
+        cum_rain: bool
+            降水量データを累積値で返す場合はTrue、前1時間値で返す場合はFalse
+        ----------
+        Returns 
+        ----------
+        d: ndarray
+            取り出した2次元データ
+        ----------
+        """
         fcst_time = self.fcst_time
         rec_num = self.rec_num
         nc = self.nc
@@ -367,7 +490,7 @@ class ReadGSM():
         return d
 
     #
-    # Netcdfファイルを閉じる
     def close_netcdf(self):
+        """netCDFファイルを閉じる"""
         nc = self.nc
         nc.close()
