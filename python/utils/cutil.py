@@ -4,8 +4,17 @@
 #  Basemapのcmを用いる
 from mpl_toolkits.basemap import cm
 
+
 # ColUtils: カラーユーティリティ
 class ColUtils():
+    """カラーユーティリティ
+
+    Parameters:
+    ----------
+    cmap_name: str
+        色テーブルの名前
+    ----------
+    """
     def __init__(self, cmap_name=None):
         if cmap_name == "s3pcpn_l":
             self.cmap = cm.s3pcpn_l
@@ -24,6 +33,21 @@ class ColUtils():
                 raise Exception("invalid cmap_name")
 
     def get_ctable(self, under=None, over=None):
+        """カラーマップ作成
+
+        Parameters:
+        ----------
+        under: str
+            下限を下回った場合の色
+        over: str
+            上限を上回った場合の色
+        ----------
+        Returns:
+        ----------
+        cmap: matplotlib.colors.LinearSegmentedColormap
+            カラーマップ
+        ----------
+        """
         # カラーマップ作成
         cmap = self.cmap
         if under is not None:

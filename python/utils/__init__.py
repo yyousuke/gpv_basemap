@@ -19,10 +19,23 @@ opt_remove_png = True
 
 __all__ = ["ColUtils", "val2col"]
 
-# 近傍のデータ点取り出し
-# loc_list: データ点のリスト
-# loc: 取り出す点
+
 def get_gridloc(loc_list, loc):
+    """近傍のデータ点取り出し
+
+    Parameters:
+    ----------
+    loc_list: list(float, float, ...) or numpy.ndarray
+        データ点のリスト
+    loc: float
+        取り出す点
+    ----------
+    Returns:
+    ----------
+    iloc: int
+        近傍のデータ点番号
+    ----------
+    """
     r = 360.
     iloc = 0
     for n, x in enumerate(loc_list):
@@ -38,22 +51,41 @@ def get_gridloc(loc_list, loc):
 # thetae = (tmp + EL/CP * q) * (p00 / p)**(Rd/Cp)
 #
 # ECMWF
-# qs = Rd/Rv*es0/p*exp[ 
+# qs = Rd/Rv*es0/p*exp[
 #       (Lq+emelt/2.0*(1.0-sign(1.0,T-Tqice)))
 #       /Rv*(1.0/Tmelt-1.0/T)]
 #
 # input: pres, tem, rh: 気圧、気温、相対湿度
 # output: the, thes: 相当温位、飽和相当温位
 def mktheta(pres, tem, rh):
-    Rd = 287.04 # gas constant of dry air [J/K/kg]
-    Rv = 461.50 # gas constant of water vapor [J/K/kg]
-    es0 = 610.7 # Saturate pressure of water vapor at 0C [Pa]
-    Lq = 2.5008e6 # latent heat for evapolation at 0C [kg/m3]
-    emelt = 3.40e5 # Latent heat of melting [kg/m3]
-    Tqice = 273.15 #  Wet-bulb temp. rain/snow [K]
-    Tmelt = 273.15 # Melting temperature of water [K]
-    Cp = 1004.6 # specific heat at constant pressure of air (J/K/kg)
-    p00 = 100000.0 # reference pressure 1000 [hPa]
+    """相当温位、飽和相当温位を求める
+
+    Parameters:
+    ----------
+    pres: numpy.ndarray
+        気圧（Pa）
+    tem: numpy.ndarray
+        気温（K）
+    rh: numpy.ndarray
+        相対湿度（%）
+    ----------
+    Returns:
+    ----------
+    the: float
+        相当温位（K）
+    thes: float
+        飽和相当温位（K）
+    ----------
+    """
+    Rd = 287.04  # gas constant of dry air [J/K/kg]
+    Rv = 461.50  # gas constant of water vapor [J/K/kg]
+    es0 = 610.7  # Saturate pressure of water vapor at 0C [Pa]
+    Lq = 2.5008e6  # latent heat for evapolation at 0C [kg/m3]
+    emelt = 3.40e5  # Latent heat of melting [kg/m3]
+    Tqice = 273.15  #  Wet-bulb temp. rain/snow [K]
+    Tmelt = 273.15  # Melting temperature of water [K]
+    Cp = 1004.6  # specific heat at constant pressure of air (J/K/kg)
+    p00 = 100000.0  # reference pressure 1000 [hPa]
     # pres [Pa], tem [K], rh [%]
     # 飽和比湿を求める
     qs = (Rd / Rv * es0 / pres) \
@@ -62,14 +94,14 @@ def mktheta(pres, tem, rh):
     # 比湿を求める
     q = qs * rh * 0.01
     # 相当温位を求める
-    the = (tem + Lq/Cp * q) * np.power(p00/pres, Rd/Cp)
+    the = (tem + Lq / Cp * q) * np.power(p00 / pres, Rd / Cp)
     # 飽和相当温位を求める
-    thes = (tem + Lq/Cp * qs) * np.power(p00/pres, Rd/Cp)
-    return(the, thes)
+    thes = (tem + Lq / Cp * qs) * np.power(p00 / pres, Rd / Cp)
+    return (the, thes)
 
 
-# convertを使い、pngからgifアニメーションに変換する
 def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
+    """convertを使い、pngからgifアニメーションに変換する"""
     args = ["convert", "-delay", delay]
     args.extend(input_filenames)
     args.append(output_filename)
@@ -82,12 +114,12 @@ def convert_png2gif(input_filenames, delay="80", output_filename="output.gif"):
     print(res.stderr.decode("utf-8"))
 
 
-# ffmpegを使い、pngからmp4アニメーションに変換する
 def convert_png2mp4(
         input_file="input_%02d.png",
         pfrate="1",  # framerate of input pictures (files/s)
         mfrate="30",  # movie framerate for output (fps)
         output_filename="output.mp4"):
+    """convertを使い、pngからmp4アニメーションに変換する"""
     args = [
         "ffmpeg", "-f", "image2", "-framerate", pfrate, "-i", input_file, "-r",
         mfrate, "-an", "-vcodec", "libx264", "-pix_fmt", "yuv420p"
@@ -107,16 +139,21 @@ def convert_png2mp4(
         os.remove(output_filename)
 
 
-# 後処理
-# utput_filenames: 途中で出力したpngファイル名
 def post(output_filenames):
+    """後処理(中間ファイルの削除)
+
+    Parameters:
+    ----------
+    output_filenames: str
+        途中で出力したpngファイル名
+    """
     if opt_remove_png:
         for f in output_filenames:
             os.remove(f)
 
 
-# オプションの読み込み
 def _construct_parser(opt_lev=False):
+    """オプションの読み込み"""
     parser = argparse.ArgumentParser(
         description='Matplotlib basemap, weather map')
 
@@ -150,9 +187,20 @@ def _construct_parser(opt_lev=False):
     return parser
 
 
-# オプションの読み込み
-# opt_lev: 気圧面レベルを取得するかどうか
 def parse_command(args, opt_lev=False):
+    """オプションの読み込み
+
+    Parameters:
+    ----------
+    opt_lev: bool
+        気圧面レベルを取得するかどうか
+    ----------
+    Returns:
+    ----------
+    parsed_args: argparse.ArgumentParser.parse_args
+        読み込んだオプション
+    ----------
+    """
     parser = _construct_parser(opt_lev)
     parsed_args = parser.parse_args(args[1:])
     if parsed_args.fcst_date is None:
