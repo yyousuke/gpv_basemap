@@ -3,8 +3,6 @@ import sys
 import subprocess
 from datetime import datetime, timedelta
 
-fcst_date = "20210710120000"  # UTC
-
 # 水平分布
 stations = ["Japan", "Tokyo"]
 # GSM
