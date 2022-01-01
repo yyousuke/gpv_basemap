@@ -196,9 +196,9 @@ if __name__ == '__main__':
         # 気温を二次元のndarrayで取り出す (K->℃)
         tmp = msm.ret_var("TMP_1D5maboveground", offset=-273.15)  # (℃)
         # 東西風を二次元のndarrayで取り出す
-        uwnd = gsm.ret_var("UGRD_10maboveground")  # (m/s)
+        uwnd = msm.ret_var("UGRD_10maboveground")  # (m/s)
         # 南北風を二次元のndarrayで取り出す
-        vwnd = gsm.ret_var("VGRD_10maboveground")  # (m/s)
+        vwnd = msm.ret_var("VGRD_10maboveground")  # (m/s)
         # ファイルを閉じる
         msm.close_netcdf()
         #
