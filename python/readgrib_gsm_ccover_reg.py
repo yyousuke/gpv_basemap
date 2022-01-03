@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import subprocess
-import argparse
-import matplotlib
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import matplotlib.ticker as ticker
@@ -27,21 +25,19 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
     region = MapRegion(sta)
     if sta == "Japan":
         opt_c1 = False
-        bstp = 6
         cstp = 1
         mres = "l"
         # 変数を指定(all)
-        lon_step = 5
+        lon_step = region.lon_step
         lon_min = lons_1d.min()
         lon_max = lons_1d.max()
-        lat_step = 5
+        lat_step = region.lat_step
         lat_min = lats_1d.min()
         lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
     else:
         opt_c1 = True
         cstp = 2
-        bstp = 1
         mres = "h"
         # Map.regionの変数を取得
         lon_step = region.lon_step
@@ -52,7 +48,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
         lat_max = region.lat_max
 
     # マップを作成
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     ax = fig.add_axes((0.1, 0.3, 0.8, 0.6))
     # 最初の4つのパラメータは描画する範囲の指定、最後は解像度
     m = Basemap(llcrnrlon=lon_min,
@@ -87,9 +83,9 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
                         levels=levels1,
                         colors='k',
                         linestyles=['-', ':'],
-                        linewidths=0.8)
+                        linewidths=1.2)
         # ラベルを付ける
-        cr1.clabel(cr1.levels[::cstp], fontsize=10, fmt="%d")
+        cr1.clabel(cr1.levels[::cstp], fontsize=12, fmt="%d")
     else:
         # 等圧線をひく間隔(2hPaごと)をlevels2にリストとして入れる
         levels2 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
@@ -100,9 +96,9 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
                         mslp,
                         levels=levels2,
                         colors='k',
-                        linewidths=0.8)
+                        linewidths=1.2)
         # ラベルを付ける
-        cr2.clabel(cr2.levels[::cstp], fontsize=10, fmt="%d")
+        cr2.clabel(cr2.levels[::cstp], fontsize=12, fmt="%d")
     #
     # 雲量の陰影を付ける値をlevelsrにリストとして入れる
     levelsc = np.arange(0, 100.1, 5)
@@ -177,6 +173,9 @@ if __name__ == '__main__':
     for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
         gsm.set_fcst_time(fcst_time)
+        # fcst時刻
+        tinfo_fcst = tinfo + timedelta(hours=int(fcst_time))
+        tlab_fcst = tinfo_fcst.strftime("%m/%d %H UTC")
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = gsm.readnetcdf()
         # 変数取り出し
@@ -194,7 +193,8 @@ if __name__ == '__main__':
         gsm.close_netcdf()
         #
         # タイトルの設定
-        title = tlab + " forecast, +" + str(fcst_time) + "h"
+        title = tlab + " GSM forecast, +" + str(
+            fcst_time) + "h (" + tlab_fcst + ")"
         # 出力ファイル名の設定
         hh = "{d:02d}".format(d=fcst_time)
         output_filename = "map_gsm_ccover_" + sta + "_" + str(hh) + ".png"

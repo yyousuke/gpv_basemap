@@ -3,12 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import os
-import subprocess
-import argparse
-import urllib.request
-import netCDF4
-import matplotlib
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
@@ -33,10 +28,10 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
         cstp = 1
         mres = "l"
         # 変数を指定(all)
-        lon_step = 5
+        lon_step = region.lon_step
         lon_min = lons_1d.min()
         lon_max = lons_1d.max()
-        lat_step = 5
+        lat_step = region.lat_step
         lat_min = lats_1d.min()
         lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
@@ -53,7 +48,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
         lat_max = region.lat_max
 
     # マップを作成
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     # ランベルト正角円錐図法、4つのパラメータは描画する範囲の指定、最後は解像度
     m = Basemap(projection='lcc',
                 lon_0=135,
@@ -76,13 +71,9 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
                     fontsize='small',
                     labels=[True, False, False, False])
     #
-    # 等圧線をひく間隔をlevelsにリストとして入れる
-    # 2hPaごとに線をひく
-    levels = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
-                   math.ceil(mslp.max()) + 1, 2)
     # 等圧線をひく
     if opt_c1:
-        # 1hPaごとに線をひく
+        # 等圧線をひく間隔(1hPaごと)をlevelsにリストとして入れる
         levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
                         math.ceil(mslp.max()) + 1, 1)
         cr1 = m.contour(x,
@@ -91,13 +82,16 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
                         levels=levels1,
                         colors='k',
                         linestyles=['-', ':'],
-                        linewidths=0.8)
+                        linewidths=1.2)
         # ラベルを付ける
         cr1.clabel(cr1.clevels[::cstp], fontsize=12, fmt="%d")
     else:
-        cr2 = m.contour(x, y, mslp, levels=levels, colors='k', linewidths=0.8)
+        # 等圧線をひく間隔(1hPaごと)をlevelsにリストとして入れる
+        levels2 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
+                        math.ceil(mslp.max()) + 1, 2)
+        cr2 = m.contour(x, y, mslp, levels=levels2, colors='k', linewidths=1.2)
         # ラベルを付ける
-        cr2.clabel(cr2.clevels[::cstp], fontsize=12, fmt="%d")
+        cr2.clabel(cr2.levels[::cstp], fontsize=12, fmt="%d")
     #
     #
     # 色テーブルの設定
@@ -144,7 +138,7 @@ if __name__ == '__main__':
     #
     # fcst_timeを変えてplotmapを実行
     rain_add = []
-    for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
+    for fcst_time in np.arange(0, fcst_end + 1, 1):
         # fcst_timeを設定
         msm.set_fcst_time(fcst_time)
         # NetCDFデータ読み込み

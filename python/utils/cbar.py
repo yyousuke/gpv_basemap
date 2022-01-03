@@ -105,7 +105,7 @@ class val2col():
                text=None,
                ha='right',
                va='bottom',
-               fontsize=10):
+               fontsize=14):
         """カラーバーにラベルを付ける
 
         Parameters:

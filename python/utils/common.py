@@ -10,6 +10,6 @@ register_matplotlib_converters()
 warnings.filterwarnings('ignore',
                         category=matplotlib.MatplotlibDeprecationWarning)
 matplotlib.rcParams['figure.max_open_warning'] = 0
-#plt.rcParams['font.size'] = 14  # 文字サイズ
+plt.rcParams['font.size'] = 14  # 文字サイズ
 #
 

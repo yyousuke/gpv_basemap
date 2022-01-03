@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import subprocess
-import argparse
-import matplotlib
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
@@ -31,10 +29,10 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
         cstp = 1  # 等値線ラベルを何個飛ばしに付けるか
         mres = "l"  # 地図の解像度
         # 変数を指定(all)
-        lon_step = 5
+        lon_step = region.lon_step
         lon_min = lons_1d.min()
         lon_max = lons_1d.max()
-        lat_step = 5
+        lat_step = region.lat_step
         lat_min = lats_1d.min()
         lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
@@ -53,7 +51,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
         lat_max = region.lat_max
 
     # マップを作成
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     # 最初の4つのパラメータは描画する範囲の指定、最後は解像度
     m = Basemap(llcrnrlon=lon_min,
                 urcrnrlon=lon_max,
@@ -83,7 +81,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
                         levels=levels_t,
                         colors='k',
                         linestyles=['-', ':', ':'],
-                        linewidths=[1.2, 0.8, 0.8])
+                        linewidths=[1.8, 1.2, 1.2])
         cr1.clabel(cr1.levels[::cstp], fontsize=12, fmt="%d")
     else:
         # 等温線を描く値のリスト（3Kごと）
@@ -95,7 +93,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
                         levels=levels_t,
                         colors='k',
                         linestyles='-',
-                        linewidths=1.2)
+                        linewidths=1.8)
         cr2.clabel(cr2.levels[::cstp], fontsize=12, fmt="%d")
 
     #
@@ -116,7 +114,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
     if opt_barbs:
         m.barbs(lons[::bstp,::bstp], lats[::bstp,::bstp], \
                 uwnd[::bstp,::bstp], vwnd[::bstp,::bstp], \
-                color='r', length=4,
+                color='r', length=5, linewidth=1.5,
                 sizes=dict(emptybarb=0.00, spacing=0.16, height=0.4))
     #
     # 海岸線を描く
@@ -157,6 +155,9 @@ if __name__ == '__main__':
     for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
         msm.set_fcst_time(fcst_time)
+        # fcst時刻
+        tinfo_fcst = tinfo + timedelta(hours=int(fcst_time))
+        tlab_fcst = tinfo_fcst.strftime("%m/%d %H UTC")
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = msm.readnetcdf()
         # 変数取り出し
@@ -176,8 +177,8 @@ if __name__ == '__main__':
         msm.close_netcdf()
         #
         # タイトルの設定
-        title = str(level) + "hPa " + tlab + " forecast, +" + str(
-            fcst_time) + "h"
+        title = str(level) + "hPa " + tlab + " MSM forecast, +" + str(
+            fcst_time) + "h (" + tlab_fcst + ")"
         #        title = tlab + " forecast, +" + str(fcst_time) + "h"
         # 出力ファイル名の設定
         hh = "{d:02d}".format(d=fcst_time)

@@ -3,12 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import os
-import subprocess
-import argparse
-import urllib.request
-import netCDF4
-import matplotlib
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
@@ -31,10 +26,10 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
         cstp = 1
         mres = "l"
         # 変数を指定(all)
-        lon_step = 5
+        lon_step = region.lon_step
         lon_min = lons_1d.min()
         lon_max = lons_1d.max()
-        lat_step = 5
+        lat_step = region.lat_step
         lat_min = lats_1d.min()
         lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
@@ -51,7 +46,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
         lat_max = region.lat_max
 
     # マップを作成
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     # 最初の4つのパラメータは描画する範囲の指定、最後は解像度
     m = Basemap(llcrnrlon=lon_min,
                 urcrnrlon=lon_max,
@@ -80,7 +75,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
                         levels=levels1,
                         colors='k',
                         linestyles=['-', ':'],
-                        linewidths=0.8)
+                        linewidths=1.2)
         # ラベルを付ける
         cr1.clabel(cr1.levels[::cstp], fontsize=12, fmt="%d")
     else:
@@ -92,7 +87,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
                         mslp,
                         levels=levels2,
                         colors='k',
-                        linewidths=0.8)
+                        linewidths=1.2)
         # ラベルを付ける
         cr2.clabel(cr2.levels[::cstp], fontsize=12, fmt="%d")
     #

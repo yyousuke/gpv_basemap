@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-import subprocess
-import argparse
-import matplotlib
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap, cm
 from jmaloc import MapRegion
@@ -29,10 +27,10 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, z50, the85, the50,
         cstp = 5  # 等温位線ラベルを何個飛ばしに付けるか
         mres = "l"  # 地図の解像度
         # 変数を指定(all)
-        lon_step = 5
+        lon_step = region.lon_step
         lon_min = lons_1d.min()
         lon_max = lons_1d.max()
-        lat_step = 5
+        lat_step = region.lat_step
         lat_min = lats_1d.min()
         lat_max = lats_1d.max()
         print(lats_1d.min(), lats_1d.max(), lons_1d.min(), lons_1d.max())
@@ -48,7 +46,7 @@ def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, z50, the85, the50,
         lat_max = region.lat_max
 
     # マップを作成
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     # 最初の4つのパラメータは描画する範囲の指定、最後は解像度
     m = Basemap(llcrnrlon=lon_min,
                 urcrnrlon=lon_max,
@@ -156,6 +154,9 @@ if __name__ == '__main__':
     for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
         msm.set_fcst_time(fcst_time)
+        # fcst時刻
+        tinfo_fcst = tinfo + timedelta(hours=int(fcst_time))
+        tlab_fcst = tinfo_fcst.strftime("%m/%d %H UTC")
         # NetCDFデータ読み込み
         lons_1d, lats_1d, lons, lats = msm.readnetcdf()
         # 変数取り出し
@@ -182,7 +183,8 @@ if __name__ == '__main__':
         msm.close_netcdf()
         #
         # タイトルの設定
-        title = tlab + " forecast, +" + str(fcst_time) + "h"
+        title = tlab + " MSM forecast, +" + str(
+            fcst_time) + "h (" + tlab_fcst + ")"
         # 出力ファイル名の設定
         hh = "{d:02d}".format(d=fcst_time)
         output_filename = "map_msm_ept_" + sta + "_" + str(hh) + ".png"
