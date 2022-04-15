@@ -20,6 +20,36 @@ import utils.common
 
 def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm,
             cfrh, title, output_filename):
+    """作図を行う
+    
+    Parameters:
+    ----------
+    fcst_time: int
+        予報開始時刻からの経過時間（時）
+    sta: str
+        地点名 
+    lons_1d: str
+        経度データ（1次元）
+    lats_1d: ndarray
+        緯度データ（1次元）
+    lons: ndarray
+        経度データ（2次元）
+    lats: ndarray
+        緯度データ（2次元） 
+    mslp: ndarray
+        SLPデータ（2次元）
+    cfrl: ndarray
+        下層雲量（2次元）
+    cfrm: ndarray
+        中層雲量（2次元）
+    cfrh: ndarray
+        上層雲量（2次元）
+    title: str
+        タイトル
+    output_filename: str
+        出力ファイル名 
+    ----------
+    """
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
