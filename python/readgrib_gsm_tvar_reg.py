@@ -32,6 +32,36 @@ barbs_kt = True  # true: kt, false: m/s
 
 def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
             title, output_filename):
+    """時系列データの作図を行う
+    
+    Parameters:
+    ----------
+    index: datetime.datetime
+        時刻
+    mslp: ndarray
+        SLPデータ（1次元、hPa）
+    prep: ndarray
+        降水量データ（1次元、mm）
+    temp: ndarray
+        気温データ（1次元、K）
+    uwnd: ndarray
+        東西風データ（1次元、m/s）
+    vwnd: ndarray
+        南北風データ（1次元、m/s）
+    cfrl: ndarray
+        下層雲量（1次元、%）
+    cfrm: ndarray
+        中層雲量（1次元、%）
+    cfrh: ndarray
+        上層雲量（1次元、%）
+    cfrt: ndarray
+        全雲量（1次元、%）
+    title: str
+        タイトル
+    output_filename: str
+        出力ファイル名 
+    ----------
+    """
     #
     # 作図
     # (0) プロットエリアの定義

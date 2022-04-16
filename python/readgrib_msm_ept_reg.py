@@ -18,8 +18,36 @@ import utils.common
 ### Start Map Prog ###
 
 
-def plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, z50, the85, the50,
-            dthdz, title, output_filename):
+def plotmap(sta, lons_1d, lats_1d, lons, lats, z50, the85, the50, dthdz, title,
+            output_filename):
+    """作図を行う
+    
+    Parameters:
+    ----------
+    sta: str
+        地点名 
+    lons_1d: str
+        経度データ（1次元、度）
+    lats_1d: ndarray
+        緯度データ（1次元、度）
+    lons: ndarray
+        経度データ（2次元、度）
+    lats: ndarray
+        緯度データ（2次元、度）
+    z50: ndarray
+        500hPaジオポテンシャル高度（2次元、m）
+    the85: ndarray
+        850hPa相当温位（2次元、K）
+    the50: ndarray
+        500hPa相当温位（2次元、K）
+    dthdz: ndarray
+       安定度（the50 - the85）（2次元、K）
+    title: str
+        タイトル
+    output_filename: str
+        出力ファイル名 
+    ----------
+    """
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
@@ -188,8 +216,8 @@ if __name__ == '__main__':
         # 出力ファイル名の設定
         hh = "{d:02d}".format(d=fcst_time)
         output_filename = "map_msm_ept_" + sta + "_" + str(hh) + ".png"
-        plotmap(fcst_time, sta, lons_1d, lats_1d, lons, lats, z50, the85,
-                the50, dthdz, title, output_filename)
+        plotmap(sta, lons_1d, lats_1d, lons, lats, z50, the85, the50, dthdz,
+                title, output_filename)
         output_filenames.append(output_filename)
     # pngからgifアニメーションに変換
     convert_png2gif(input_filenames=output_filenames,

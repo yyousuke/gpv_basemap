@@ -18,6 +18,30 @@ import utils.common
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
             output_filename):
+    """作図を行う
+    
+    Parameters:
+    ----------
+    sta: str
+        地点名 
+    lons_1d: str
+        経度データ（1次元、度）
+    lats_1d: ndarray
+        緯度データ（1次元、度）
+    lons: ndarray
+        経度データ（2次元、度）
+    lats: ndarray
+        緯度データ（2次元、度）
+    mslp: ndarray
+        SLPデータ（2次元、hPa）
+    rain: ndarray
+        降水量（2次元、mm）
+    title: str
+        タイトル
+    output_filename: str
+        出力ファイル名 
+    ----------
+    """
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)

@@ -21,6 +21,32 @@ opt_stmp = False  # 等温線を引く（-2、2℃）
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
             title, output_filename):
+    """作図を行う
+    
+    Parameters:
+    ----------
+    sta: str
+        地点名 
+    lons_1d: str
+        経度データ（1次元、度）
+    lats_1d: ndarray
+        緯度データ（1次元、度）
+    lons: ndarray
+        経度データ（2次元、度）
+    lats: ndarray
+        緯度データ（2次元、度）
+    mslp: ndarray
+        SLPデータ（2次元、hPa）
+    uwnd: ndarray
+        東西風（2次元、m/s）
+    vwnd: ndarray
+        南北風（2次元、m/s）
+    title: str
+        タイトル
+    output_filename: str
+        出力ファイル名 
+    ----------
+    """
     #
     # MapRegion Classの初期化
     region = MapRegion(sta)
