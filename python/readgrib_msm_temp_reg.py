@@ -17,8 +17,8 @@ import utils.common
 ### Start Map Prog ###
 
 
-def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
-            title, output_filename):
+def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
+            output_filename):
     """作図を行う
     
     Parameters:
@@ -37,8 +37,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
         東西風（2次元、m/s）
     vwnd: ndarray
         南北風（2次元、m/s）
-    wspd: ndarray
-        風速（2次元、m/s）
     tmp: ndarray
         気温データ（2次元、K）
     rh: ndarray
@@ -196,7 +194,7 @@ if __name__ == '__main__':
         vwnd = msm.ret_var("VGRD_" + str(level) + "mb")  # (m/s)
         #        uwnd = msm.ret_var("UGRD_850mb") # (m/s)
         #        vwnd = msm.ret_var("VGRD_850mb") # (m/s)
-        wspd = np.sqrt(uwnd**2 + vwnd**2)
+        #wspd = np.sqrt(uwnd**2 + vwnd**2)
         # 850 hPa 気温データを二次元のndarrayで取り出す (K->℃)
         tmp = msm.ret_var("TMP_" + str(level) + "mb", offset=-273.15)  # (℃)
         #        tmp = msm.ret_var("TMP_850mb", offset=-273.15) # (℃)
@@ -215,8 +213,8 @@ if __name__ == '__main__':
         output_filename = "map_msm_temp_" + str(
             level) + "hPa_" + sta + "_" + str(hh) + ".png"
         # 作図
-        plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, wspd, tmp, rh,
-                title, output_filename)
+        plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
+                output_filename)
         output_filenames.append(output_filename)
     # pngからgifアニメーションに変換
     convert_png2gif(input_filenames=output_filenames,
