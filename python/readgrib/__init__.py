@@ -244,6 +244,7 @@ class ReadMSM():
         <surf/plev>：surfなら表面データ、plevなら気圧面データ
     ----------
     """
+
     def __init__(self, tsel=None, msm_dir=None, msm_lev=None):
         self.tsel = tsel
         self.msm_dir = msm_dir
@@ -349,6 +350,37 @@ class ReadMSM():
         return d
 
     #
+    def ret_var_3d(self, var_name, plevs, fact=1.0, offset=0.0):
+        """netCDFファイルに含まれているデータを三次元のndarrayで返す
+        
+        Parameters:
+        ----------
+        varname: str
+            読み出す変数名（気圧面の名前は付けない）
+        plevs: list(int, int, ...) or ndarray(int, int, ...)
+            読み出す気圧面レベル（hPa）
+        fact: float
+            データに掛けるスケールファクター
+        offset: float
+            データに足すオフセット値
+        ----------
+        Returns 
+        ----------
+        d: ndarray
+            取り出した3次元データ
+        ----------
+        """
+        d = []
+        # 気圧面毎に取り出す
+        for p in plevs:
+            vn = var_name + "_" + str(p) + "mb"
+            d.append(self.ret_var(vn, fact=fact, offset=offset))
+        # 3次元データの作成
+        d = np.array(d)
+        print(var_name, d.shape)
+        return d
+
+    #
     def close_netcdf(self):
         """netCDFファイルを閉じる"""
         nc = self.nc
@@ -371,6 +403,7 @@ class ReadGSM():
         <surf/plev>：surfなら表面データ、plevなら気圧面データ
     ----------
     """
+
     def __init__(self, tsel=None, gsm_dir=None, gsm_lev=None):
         self.tsel = tsel
         self.gsm_dir = gsm_dir
@@ -486,6 +519,37 @@ class ReadGSM():
             # データを取り出し、factを掛けoffsetを足す
             d = nc.variables[var_name][rec_num] * fact + offset
         #
+        print(var_name, d.shape)
+        return d
+
+    #
+    def ret_var_3d(self, var_name, plevs, fact=1.0, offset=0.0):
+        """netCDFファイルに含まれているデータを三次元のndarrayで返す
+        
+        Parameters:
+        ----------
+        varname: str
+            読み出す変数名（気圧面の名前は付けない）
+        plevs: list(int, int, ...) or ndarray(int, int, ...)
+            読み出す気圧面レベル（hPa）
+        fact: float
+            データに掛けるスケールファクター
+        offset: float
+            データに足すオフセット値
+        ----------
+        Returns 
+        ----------
+        d: ndarray
+            取り出した3次元データ
+        ----------
+        """
+        d = []
+        # 気圧面毎に取り出す
+        for p in plevs:
+            vn = var_name + "_" + str(p) + "mb"
+            d.append(self.ret_var(vn, fact=fact, offset=offset))
+        # 3次元データの作成
+        d = np.array(d)
         print(var_name, d.shape)
         return d
 
