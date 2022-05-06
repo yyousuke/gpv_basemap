@@ -83,7 +83,7 @@
 
 https://database3.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original にアクセスして、SSL証明書が期限切れになっていることを確認する。
 
-python/readgrib/__init__.pyの最初に、次のようなコードを加える（セキュリティ上は安全とはえないので、一時的に回避したい場合に行う）
+python/readgrib/`__`init`__`.pyの最初に、次のようなコードを加える（セキュリティ上は安全とは言えないので、一時的に回避したい場合に行う）
 
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
