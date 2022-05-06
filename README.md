@@ -74,3 +74,17 @@
     ＊ダウンロードしたファイルを置いたディレクトリを、DATADIR_GPVという環境変数に格納しておくと、そのディレクトリにあるファイルを読みにいく。
 
     % export DATADIR_GPV=${HOME}/Downloads
+
+## エラー
+
+次のようなSSL証明書のエラーが発生する場合
+    
+    urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1129)>
+
+https://database3.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original にアクセスして、SSL証明書が期限切れになっていることを確認する。
+
+python/readgrib/__init__.pyの最初に、次のようなコードを加える（セキュリティ上は安全とはえないので、一時的に回避したい場合に行う）
+
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+    
