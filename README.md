@@ -82,8 +82,7 @@
     urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1129)>
 
 https://database3.rish.kyoto-u.ac.jp/arch/jmadata/data/gpv/original にアクセスして、SSL証明書が期限切れになっていることを確認する。
-
-python/readgrib/`__`init`__`.pyの最初に、次のようなコードを加える（セキュリティ上は安全とは言えないので、一時的に回避したい場合に行う）
+`python/readgrib/__init__.py`の最初に、次のようなコードを加える（セキュリティ上は安全とは言えないので、一時的に回避したい場合に行う）
 
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
