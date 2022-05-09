@@ -1,6 +1,6 @@
 #
 #  2020/03/30 Yamashita: first ver.
-#  2022/05/07 Yamashita: WriteNC class
+#  2022/05/09 Yamashita: WriteNC class
 #
 import netCDF4
 import numpy as np
@@ -143,9 +143,9 @@ class WriteNC():
             変数の単位
         out_name: str
             出力変数の名前
-        valid_min: float
+        valid_min: str or float
             想定される最小値
-        valid_max: float
+        valid_max: str or float
             想定される最大値
         dtype: str
             出力変数のデータ型
@@ -156,7 +156,7 @@ class WriteNC():
         actual_range: str
             実際のデータ範囲を出力する場合はtrue
         \**kwards: dict
-             追加のキー、値（エラー抑止のためのダミー）
+            追加のキー、値（エラー抑止のためのダミー）
         """
         nc = self.nc
         # 次元の設定
@@ -168,8 +168,8 @@ class WriteNC():
         var.standard_name = standard_name
         var.long_name = long_name
         var.units = units
-        var.valid_min = valid_min
-        var.valid_max = valid_max
+        var.valid_min = _npconvert(valid_min, dtype=dtype)
+        var.valid_max = _npconvert(valid_max, dtype=dtype)
         if positive is not None:
             var.positive = positive
         if calendar is not None:
@@ -178,7 +178,6 @@ class WriteNC():
             var.actual_range = _get_data_range(dat)
         # 変数の書き出し
         var[:] = dat
-        #return var
 
     def create_var(self,
                    dat,
@@ -214,13 +213,13 @@ class WriteNC():
             変数の単位
         out_name: str
             出力変数の名前
-        valid_min: float
+        valid_min: str or float
             想定される最小値
-        valid_max: float
+        valid_max: str or float
             想定される最大値
-        scale_factor: float
+        scale_factor: str or float
             格納するデータのスケールファクター
-        add_offset: float
+        add_offset: str or float
             格納するデータのオフセット値
         missing_value: float
             格納するデータの欠損値
@@ -229,7 +228,7 @@ class WriteNC():
         actual_range: str
             実際のデータ範囲を出力する場合はtrue
         \**kwards: dict
-             追加のキー、値（エラー抑止のためのダミー）
+            追加のキー、値（エラー抑止のためのダミー）
         """
         nc = self.nc
         var = nc.createVariable(out_name,
@@ -237,21 +236,22 @@ class WriteNC():
                                 _dim2tuple(dimensions),
                                 fill_value=_npconvert(missing_value,
                                                       dtype=dtype))
-        var.axis = axis
         var.standard_name = standard_name
         var.long_name = long_name
         var.description = description
         var.units = units
-        var.valid_min = valid_min
-        var.valid_max = valid_max
-        var.scale_factor = scale_factor
-        var.add_offset = add_offset
+        var.valid_min = _npconvert(valid_min, dtype=dtype)
+        var.valid_max = _npconvert(valid_max, dtype=dtype)
+        var.scale_factor = _npconvert(scale_factor)
+        var.add_offset = _npconvert(add_offset)
         var.missing_value = _npconvert(missing_value, dtype=dtype)
         if _str2bool(actual_range):
             var.actual_range = _get_data_range(dat)
         # データ全体が欠損の場合（Noneが入っている）
         if dat is None:
             dat = np.ones(_dim2tuple(dimensions)) * missing_value
+        else:
+            dat = dat / float(scale_factor) - float(add_offset)
         # 変数の書き出し
         if len(_dim2tuple(dimensions)) == 4:
             var[:, :, :, :] = _npconvert(dat, dtype=dtype)
@@ -261,7 +261,6 @@ class WriteNC():
             var[:, :] = _npconvert(dat, dtype=dtype)
         elif len(_dim2tuple(dimensions)) == 1:
             var[:] = _npconvert(dat, dtype=dtype)
-        #return var
 
     def set_gattr(self,
                   data_specs_version='',
@@ -303,7 +302,7 @@ class WriteNC():
         created: str
             最初に作成したプログラム名と作成者、更新日、バージョンなど
         \**kwards: dict
-             追加のキー、値（エラー抑止のためのダミー）
+            追加のキー、値（エラー抑止のためのダミー）
         """
         nc = self.nc
         # Global Attributes
