@@ -8,7 +8,6 @@ stations = ["Japan", "Tokyo"]
 # GSM
 progs_gsm = [
     "python/readgrib_gsm_mslp_reg.py", "python/readgrib_gsm_rain_sum_reg.py",
-    "python/readgrib_msm_temp_reg.py",
     "python/readgrib_gsm_ccover_reg.py"
 ]
 # MSM

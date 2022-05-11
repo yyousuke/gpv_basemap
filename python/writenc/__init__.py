@@ -10,8 +10,6 @@ import array
 import os
 import sys
 
-### utils ###
-
 
 def _get_creation_date():
     """作成時刻を返す"""
@@ -100,6 +98,7 @@ class WriteNC():
     force: bool
        ファイルが存在している場合に削除する
     """
+
     def __init__(self, output_filedir="test.nc", force=False):
         # ファイルが存在している場合に削除する
         if os.path.isfile(output_filedir):
@@ -121,8 +120,8 @@ class WriteNC():
                     valid_min='NaN',
                     valid_max='NaN',
                     dtype='double',
-                    positive=None,
-                    calendar=None,
+                    positive="NaN",
+                    calendar="NaN",
                     actual_range='f',
                     **kwargs):
         """軸情報を書き出す
@@ -168,11 +167,13 @@ class WriteNC():
         var.standard_name = standard_name
         var.long_name = long_name
         var.units = units
-        var.valid_min = _npconvert(valid_min, dtype=dtype)
-        var.valid_max = _npconvert(valid_max, dtype=dtype)
-        if positive is not None:
+        if valid_min != "NaN":
+            var.valid_min = _npconvert(valid_min, dtype=dtype)
+        if valid_max != "NaN":
+            var.valid_max = _npconvert(valid_max, dtype=dtype)
+        if positive != "NaN":
             var.positive = positive
-        if calendar is not None:
+        if calendar != "NaN":
             var.calendar = calendar
         if _str2bool(actual_range):
             var.actual_range = _get_data_range(dat)
@@ -270,6 +271,7 @@ class WriteNC():
                   contact='',
                   references='',
                   Conventions='',
+                  dataset='',
                   source='',
                   history='',
                   creation_date='true',
@@ -280,7 +282,7 @@ class WriteNC():
         Parameters:
         ----------
         data_specs_version: str
-            出力ファイルへのパス
+            出力データのバージョン
         product: str
             出力変数の種類
         tracking_id: str
@@ -293,6 +295,8 @@ class WriteNC():
             CFに関連する記述
         Conventions: str
             CFバージョン
+        dataset_name: str
+            データセットの名前
         source: str
             データを記述した文献
         history: str
@@ -314,6 +318,7 @@ class WriteNC():
         nc.contact = contact
         nc.references = references
         nc.Conventions = Conventions
+        nc.dataset = dataset
         nc.source = source
         nc.history = history
         if _str2bool(creation_date):
@@ -324,4 +329,3 @@ class WriteNC():
         """NetCDFファイルを閉じる"""
         nc = self.nc
         nc.close()
-
