@@ -292,9 +292,9 @@ class WriteNC():
         contact: str
             データ作成者の連絡先
         references: str
-            CFに関連する記述
+            規約に関連するreference
         Conventions: str
-            CFバージョン
+            NetCDFファイルが準拠する規約
         dataset_name: str
             データセットの名前
         source: str
