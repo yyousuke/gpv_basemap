@@ -161,6 +161,8 @@ class WriteNC():
         # 次元の設定
         nc.createDimension(out_name, len(dat))
         # 変数の設定
+        if dtype == "float": # np defalut: float64
+            dtype = "float32"
         var = nc.createVariable(out_name,
                                 np.dtype(dtype).char, _dim2tuple(dimensions))
         var.axis = axis
@@ -193,6 +195,7 @@ class WriteNC():
                    scale_factor=1.0,
                    add_offset=0.0,
                    missing_value=1e20,
+                   missing_input=1e20,
                    dtype='double',
                    actual_range='f',
                    **kwargs):
@@ -224,6 +227,8 @@ class WriteNC():
             格納するデータのオフセット値
         missing_value: float
             格納するデータの欠損値
+        missing_input: float
+            入力するデータの欠損値
         dtype: str
             出力変数のデータ型
         actual_range: str
@@ -232,27 +237,26 @@ class WriteNC():
             追加のキー、値（エラー抑止のためのダミー）
         """
         nc = self.nc
+        if dtype == "float": # np defalut: float64
+            dtype = "float32"
         var = nc.createVariable(out_name,
                                 np.dtype(dtype).char,
                                 _dim2tuple(dimensions),
                                 fill_value=_npconvert(missing_value,
                                                       dtype=dtype))
+        var.scale_factor = _npconvert(scale_factor)
+        var.add_offset = _npconvert(add_offset)
         var.standard_name = standard_name
         var.long_name = long_name
         var.description = description
         var.units = units
         var.valid_min = _npconvert(valid_min, dtype=dtype)
         var.valid_max = _npconvert(valid_max, dtype=dtype)
-        var.scale_factor = _npconvert(scale_factor)
-        var.add_offset = _npconvert(add_offset)
         var.missing_value = _npconvert(missing_value, dtype=dtype)
         if _str2bool(actual_range):
             var.actual_range = _get_data_range(dat)
-        # データ全体が欠損の場合（Noneが入っている）
-        if dat is None:
-            dat = np.ones(_dim2tuple(dimensions)) * missing_value
-        else:
-            dat = dat / float(scale_factor) - float(add_offset)
+        # 欠損処理
+        dat[dat == missing_input] = np.nan
         # 変数の書き出し
         if len(_dim2tuple(dimensions)) == 4:
             var[:, :, :, :] = _npconvert(dat, dtype=dtype)
