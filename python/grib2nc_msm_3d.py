@@ -30,6 +30,7 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
     rh = []
     uwnd = []
     vwnd = []
+    omg = []
     hgt = []
     for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
@@ -56,6 +57,8 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
         # 東西風、南北風を3次元のndarrayで取り出す
         uwnd.append(msm.ret_var_3d("UGRD", plevs))  # (m/s)
         vwnd.append(msm.ret_var_3d("VGRD", plevs))  # (m/s)
+        # 鉛直速度を3次元のndarrayで取り出す
+        omg.append(msm.ret_var_3d("VVEL", plevs))  # (Pa/s)
         # ジオポテンシャル高度を3次元のndarrayで取り出す
         hgt.append(msm.ret_var_3d("HGT", plevs))  # (m)
         # ファイルを閉じる
@@ -66,6 +69,7 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
     rh = np.array(rh)
     uwnd = np.array(uwnd)
     vwnd = np.array(vwnd)
+    omg = np.array(omg)
     hgt = np.array(hgt)
     # データを返却
     return {
@@ -77,6 +81,7 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
         "rh": rh,
         "uwnd": uwnd,
         "vwnd": vwnd,
+        "omg": omg,
         "hgt": hgt
     }
 
