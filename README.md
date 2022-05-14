@@ -40,7 +40,6 @@
 
 - **readgrib_msm_tvar_reg.py***：MSMデータからアメダス地点近傍の時系列図を描く
 
-
 ### 作図プログラムオプション
 
 - **--fcst_date** <予報時刻UTCの文字列>：YYYYMMDDHHMMSSの形式またはISO形式
@@ -74,6 +73,30 @@
     ＊ダウンロードしたファイルを置いたディレクトリを、DATADIR_GPVという環境変数に格納しておくと、そのディレクトリにあるファイルを読みにいく。
 
     % export DATADIR_GPV=${HOME}/Downloads
+
+### デバッグモード
+
+- **-python/readgrib/__init__.py** GRIB2データ読み込み
+
+    デバッグモードにする場合、コード内で`verbose = True`とする
+
+## 変換プログラム
+
+- **grib2nc_msm_3d.py***：MSMデータの3次元データをNetCDFデータに変換
+
+### 変換プログラムオプション
+
+- **--fcst_date** <予報時刻UTCの文字列>：YYYYMMDDHHMMSSの形式またはISO形式
+
+    2018年1月21日00UTCを予報時刻とする例：--fcst_date 20180902210000
+    
+    ISO形式で指定する場合には、--fcst_date "2018-01-21 00:00:00"
+
+### デバッグモード
+
+- **-python/grib2nc_msm_3d.py** GRIB2データからNetCDFデータに変換するスクリプト
+
+    デバッグモードにする場合、コード内で`verbose = True`とする
 
 ## エラー
 

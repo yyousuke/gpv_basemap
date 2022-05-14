@@ -7,6 +7,12 @@ import subprocess
 import urllib.request
 import netCDF4
 import numpy as np
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# for debug
+#verbose = True
+verbose = False
 
 # 入力する気象庁GPVデータのファイルを置いたディレクトリ
 sys_file_dir = os.environ.get('DATADIR_GPV', '/data')
@@ -69,7 +75,8 @@ def _ret_grib(tsel, file_name_g2, file_name_nc, force=False):
             ["wgrib2", file_dir_name, "-netcdf", file_name_nc],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
-        print(res.stdout.decode("utf-8"))
+        if verbose:
+            print(res.stdout.decode("utf-8"))
         file_dir_name = file_name_nc
         if not os.path.isfile(file_name_nc):
             raise IOError("Convert failed, " + file_name_nc)
@@ -299,15 +306,17 @@ class ReadMSM():
         idim = len(nc.dimensions['longitude'])
         jdim = len(nc.dimensions['latitude'])
         num_rec = len(nc.dimensions['time'])
-        print("num_lon =", idim, ", num_lat =", jdim, ", num_time =", num_rec)
+        if verbose:
+            print("num_lon =", idim, ", num_lat =", jdim, ", num_time =", num_rec)
         # 変数の読み込み(一次元)
         lons_1d = nc.variables["longitude"][:]
         lats_1d = nc.variables["latitude"][:]
         time = nc.variables["time"][:]
         # lons, lats: 二次元配列に変換
         lons, lats = np.meshgrid(lons_1d, lats_1d)
-        print("lon:", lons.shape)
-        print("lat:", lats.shape)
+        if verbose:
+            print("lon:", lons.shape)
+            print("lat:", lats.shape)
         return lons_1d, lats_1d, lons, lats
 
     #
@@ -346,7 +355,8 @@ class ReadMSM():
             # データを取り出し、factを掛けoffsetを足す
             d = nc.variables[var_name][rec_num] * fact + offset
         #
-        print(var_name, d.shape)
+        if verbose:
+            print("read: ", var_name, d.shape)
         return d
 
     #
@@ -377,7 +387,8 @@ class ReadMSM():
             d.append(self.ret_var(vn, fact=fact, offset=offset))
         # 3次元データの作成
         d = np.array(d)
-        print(var_name, d.shape)
+        if verbose:
+            print(var_name, d.shape)
         return d
 
     #
