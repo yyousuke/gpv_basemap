@@ -2,7 +2,7 @@
 import sys
 import subprocess
 
-fcst_date = "20210710120000"  # UTC
+fcst_date = "20220515000000"  # UTC
 opt_gsm = True  # GSMも作図する場合（00, 06, 12, 18UTCのみ）
 
 # 水平分布
@@ -10,6 +10,7 @@ stations = ["Japan", "Tokyo"]
 # GSM
 progs_gsm = [
     "python/readgrib_gsm_mslp_reg.py", "python/readgrib_gsm_rain_sum_reg.py",
+    "python/readgrib_gsm_temp_reg.py",
     "python/readgrib_gsm_ccover_reg.py"
 ]
 # MSM
