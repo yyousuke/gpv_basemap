@@ -67,7 +67,7 @@ def _ret_grib(tsel, file_name_g2, file_name_nc, force=False):
         urllib.request.urlretrieve(url_dir_file, file_name_g2)
         file_dir_name = file_name_g2
         if not os.path.isfile(file_name_g2):
-            raise IOError("Download failed, " + file_name_g2)
+            raise FileNotFoundError("Download failed, " + file_name_g2)
     #
     # convert
     if opt_convert:
@@ -79,7 +79,7 @@ def _ret_grib(tsel, file_name_g2, file_name_nc, force=False):
             print(res.stdout.decode("utf-8"))
         file_dir_name = file_name_nc
         if not os.path.isfile(file_name_nc):
-            raise IOError("Convert failed, " + file_name_nc)
+            raise FileNotFoundError("Convert failed, " + file_name_nc)
     return file_dir_name
 
 
@@ -137,6 +137,8 @@ def _netcdf_msm_surf(msm_dir, fcst_time, tsel):
         msm_dir = "retrieve"
     else:
         file_dir_name = os.path.join(msm_dir, file_name_nc)
+    if not os.path.isfile(file_dir_name):
+        raise FileNotFoundError(file_dir_name)
     return rec_num, file_dir_name
 
 
@@ -168,6 +170,8 @@ def _netcdf_msm_plev(msm_dir, fcst_time, tsel):
         msm_dir = "retrieve"
     else:
         file_dir_name = os.path.join(msm_dir, file_name_nc)
+    if not os.path.isfile(file_dir_name):
+        raise FileNotFoundError(file_dir_name)
     return rec_num, file_dir_name
 
 
@@ -199,6 +203,8 @@ def _netcdf_gsm_surf(gsm_dir, fcst_time, tsel):
         gsm_dir = "retrieve"
     else:
         file_dir_name = os.path.join(gsm_dir, file_name_nc)
+    if not os.path.isfile(file_dir_name):
+        raise FileNotFoundError(file_dir_name)
     return rec_num, file_dir_name
 
 
@@ -230,6 +236,8 @@ def _netcdf_gsm_plev(gsm_dir, fcst_time, tsel):
         gsm_dir = "retrieve"
     else:
         file_dir_name = os.path.join(gsm_dir, file_name_nc)
+    if not os.path.isfile(file_dir_name):
+        raise FileNotFoundError(file_dir_name)
     return rec_num, file_dir_name
 
 
