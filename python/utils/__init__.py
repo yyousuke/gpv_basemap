@@ -19,6 +19,7 @@ opt_remove_png = True
 
 __all__ = ["ColUtils", "val2col"]
 
+
 # 近傍のデータ点取り出し
 # loc_list: データ点のリスト
 # loc: 取り出す点
@@ -38,34 +39,34 @@ def get_gridloc(loc_list, loc):
 # thetae = (tmp + EL/CP * q) * (p00 / p)**(Rd/Cp)
 #
 # ECMWF
-# qs = Rd/Rv*es0/p*exp[ 
+# qs = Rd/Rv*es0/p*exp[
 #       (Lq+emelt/2.0*(1.0-sign(1.0,T-Tqice)))
 #       /Rv*(1.0/Tmelt-1.0/T)]
 #
 # input: pres, tem, rh: 気圧、気温、相対湿度
 # output: the, thes: 相当温位、飽和相当温位
 def mktheta(pres, tem, rh):
-    Rd = 287.04 # gas constant of dry air [J/K/kg]
-    Rv = 461.50 # gas constant of water vapor [J/K/kg]
-    es0 = 610.7 # Saturate pressure of water vapor at 0C [Pa]
-    Lq = 2.5008e6 # latent heat for evapolation at 0C [kg/m3]
-    emelt = 3.40e5 # Latent heat of melting [kg/m3]
-    Tqice = 273.15 #  Wet-bulb temp. rain/snow [K]
-    Tmelt = 273.15 # Melting temperature of water [K]
-    Cp = 1004.6 # specific heat at constant pressure of air (J/K/kg)
-    p00 = 100000.0 # reference pressure 1000 [hPa]
+    Rd = 287.04  # gas constant of dry air [J/K/kg]
+    Rv = 461.50  # gas constant of water vapor [J/K/kg]
+    es0 = 610.7  # Saturate pressure of water vapor at 0C [Pa]
+    Lq = 2.5008e6  # latent heat for evapolation at 0C [kg/m3]
+    emelt = 3.40e5  # Latent heat of melting [kg/m3]
+    Tqice = 273.15  # Wet-bulb temp. rain/snow [K]
+    Tmelt = 273.15  # Melting temperature of water [K]
+    Cp = 1004.6  # specific heat at constant pressure of air (J/K/kg)
+    p00 = 100000.0  # reference pressure 1000 [hPa]
     # pres [Pa], tem [K], rh [%]
     # 飽和比湿を求める
     qs = (Rd / Rv * es0 / pres) \
-       * np.exp( (Lq + emelt / 2.0 * (1.0 - np.sign(tem - Tqice)) ) \
-                       / Rv * (1.0 / Tmelt - 1.0 / tem) )
+        * np.exp((Lq + emelt / 2.0 * (1.0 - np.sign(tem - Tqice)))
+                 / Rv * (1.0 / Tmelt - 1.0 / tem))
     # 比湿を求める
     q = qs * rh * 0.01
     # 相当温位を求める
-    the = (tem + Lq/Cp * q) * np.power(p00/pres, Rd/Cp)
+    the = (tem + Lq / Cp * q) * np.power(p00 / pres, Rd / Cp)
     # 飽和相当温位を求める
-    thes = (tem + Lq/Cp * qs) * np.power(p00/pres, Rd/Cp)
-    return(the, thes)
+    thes = (tem + Lq / Cp * qs) * np.power(p00 / pres, Rd / Cp)
+    return (the, thes)
 
 
 # convertを使い、pngからgifアニメーションに変換する
@@ -115,8 +116,23 @@ def post(output_filenames):
             os.remove(f)
 
 
-# オプションの読み込み
-def _construct_parser(opt_lev=False):
+def _construct_parser(opt_sta, opt_lev, opt_dset):
+    """ オプションの読み込み
+
+    Parameters:
+    ----------
+    opt_sta: bool
+        地点データを読み込むかどうか
+    opt_lev: bool
+        気圧面を指定するかどうか
+    opt_dset: bool
+        GSMかMSMを指定するかどうか
+    Returns
+    ----------
+    parser: argparse.ArgumentParse
+        読み込んだオプションのparser
+    ----------
+    """
     parser = argparse.ArgumentParser(
         description='Matplotlib basemap, weather map')
 
@@ -129,31 +145,50 @@ def _construct_parser(opt_lev=False):
         type=int,
         help=('forecast time; hour (starting from forecast date)'),
         metavar='<fcsttime>')
-    parser.add_argument('--sta',
-                        type=str,
-                        help=('Station name; e.g. Japan, Tokyo,,,'),
-                        metavar='<sta>')
+    if opt_sta:
+        parser.add_argument('--sta',
+                            type=str,
+                            help=('Station name; e.g. Japan, Tokyo,,,'),
+                            metavar='<sta>')
     if opt_lev:
         parser.add_argument('--level',
                             type=str,
                             help=('level (hPa); e.g. 925, 850, 700, 500,,,'),
                             metavar='<level>')
+    if opt_dset:
+        parser.add_argument('--dset',
+                            type=str,
+                            help=('dataset name: GSM or MSM'),
+                            metavar='<dset>')
     parser.add_argument(
         '--input_dir',
         type=str,
-        help=
-        ('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
-         'if --input_dir force_retrieve, download original data from RISH server'
-         'if --input_dir retrieve, check avilable download (default)'),
+        help=('Directory of input files: grib2 (.bin) or NetCDF (.nc); '
+              'if --input_dir force_retrieve, download original data from RISH server'
+              'if --input_dir retrieve, check avilable download (default)'),
         metavar='<input_dir>')
 
     return parser
 
 
-# オプションの読み込み
-# opt_lev: 気圧面レベルを取得するかどうか
-def parse_command(args, opt_lev=False):
-    parser = _construct_parser(opt_lev)
+def parse_command(args, opt_sta=True, opt_lev=False, opt_dset=False):
+    """ オプションの読み込み
+
+    Parameters:
+    ----------
+    opt_sta: bool
+        地点データを読み込むかどうか（デフォルト：True）
+    opt_lev: bool
+        気圧面を指定するかどうか（デフォルト：False）
+    opt_dset: bool
+        GSMかMSMを指定するかどうか（デフォルト：False）
+    Returns
+    ----------
+    parsed_args: argparse.ArgumentParse
+        読み込んだオプションのparser
+    ----------
+    """
+    parser = _construct_parser(opt_sta, opt_lev, opt_dset)
     parsed_args = parser.parse_args(args[1:])
     if parsed_args.input_dir is None:
         parsed_args.input_dir = input_dir_default
@@ -162,4 +197,7 @@ def parse_command(args, opt_lev=False):
     if opt_lev:
         if parsed_args.level is None:
             parsed_args.level = 850
+    if opt_dset:
+        if parsed_args.dset is None:
+            parsed_args.dset = "GSM"
     return parsed_args
