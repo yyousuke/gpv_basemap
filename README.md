@@ -76,7 +76,7 @@
 
 ### デバッグモード
 
-- **-python/readgrib/__init__.py** GRIB2データ読み込み
+- **python/readgrib/__init__.py** GRIB2データ読み込み
 
     デバッグモードにする場合、コード内で`verbose = True`とする
 
@@ -96,7 +96,7 @@
 
 ### デバッグモード
 
-- **-python/grib2nc_3d.py** GRIB2データからNetCDFデータに変換するスクリプト
+- **python/grib2nc_3d.py** GRIB2データからNetCDFデータに変換するスクリプト
 
     デバッグモードにする場合、コード内で`verbose = True`とする
 
