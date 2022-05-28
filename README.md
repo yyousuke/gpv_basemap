@@ -82,7 +82,7 @@
 
 ## 変換プログラム
 
-- **grib2nc_msm_3d.py***：MSMデータの3次元データをNetCDFデータに変換
+- **grib2nc_3d.py***：GSM/MSMデータの3次元データをNetCDFデータに変換
 
 ### 変換プログラムオプション
 
@@ -92,9 +92,11 @@
     
     ISO形式で指定する場合には、--fcst_date "2018-01-21 00:00:00"
 
+- **--dset** GSM | MSM：指定しない場合にはGSMとなる
+
 ### デバッグモード
 
-- **-python/grib2nc_msm_3d.py** GRIB2データからNetCDFデータに変換するスクリプト
+- **-python/grib2nc_3d.py** GRIB2データからNetCDFデータに変換するスクリプト
 
     デバッグモードにする場合、コード内で`verbose = True`とする
 

@@ -4,12 +4,12 @@ import numpy as np
 import json
 import sys
 from datetime import timedelta
-from readgrib import ReadGSM
+from readgrib import ReadGSM, ReadMSM
 from writenc import WriteNC
 from writenc import count_dind
 from utils import parse_command
 
-### Start Map Prog ###
+# pressure levels
 plevs = [
     1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 150,
     100
@@ -17,12 +17,38 @@ plevs = [
 
 # for debug
 verbose = True
-#verbose = False
+# verbose = False
 
 
-def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
-    # ReadGSM初期化
-    gsm = ReadGSM(tsel, file_dir, "plev")
+def readnc(tsel, dset, file_dir, fcst_str, fcst_end, fcst_step):
+    """ NetCDFファイルを読み込みデータを返却
+
+    Parameters:
+    ----------
+    tsel: str
+        取得する予報時刻（形式：20210819120000）
+    dset: str
+        GSMかMSMを指定する
+    fcst_str: int
+        取得開始時刻を予報時刻からの時間（h）で与える
+    fcst_end: int
+        取得終了時刻を予報時刻からの時間（h）で与える
+    fcst_step: int
+        取得間隔を時間（h）で与える
+    Returns
+    ----------
+    dict of keys and ndarray value
+        取り出した3次元データを辞書形式で返却する
+    ----------
+    """
+    if dset == "GSM":
+        # ReadGSM初期化
+        gpv = ReadGSM(tsel, file_dir, "plev")
+    elif dset == "MSM":
+        # ReadMSM初期化
+        gpv = ReadMSM(tsel, file_dir, "plev")
+    else:
+        raise ValueError("GSM or MSM")
     #
     # fcst_timeを変えてplotmapを実行
     tind = []
@@ -34,7 +60,7 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
     hgt = []
     for fcst_time in np.arange(fcst_str, fcst_end + 1, fcst_step):
         # fcst_timeを設定
-        gsm.set_fcst_time(fcst_time)
+        gpv.set_fcst_time(fcst_time)
         # 時刻情報を設定
         tinfo_fcst = tinfo + timedelta(hours=int(fcst_time))
         days = count_dind(start_year=1970,
@@ -46,23 +72,23 @@ def readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step):
         # 時刻(seconds from 1970-01-01)
         tind.append(days * 86400 + tinfo_fcst.hour * 3600)
         # NetCDFデータ読み込み
-        lons_1d, lats_1d, lons, lats = gsm.readnetcdf()
+        lons_1d, lats_1d, lons, lats = gpv.readnetcdf()
         # 変数取り出し
         # 気温を3次元のndarrayで取り出す
-        tmp.append(gsm.ret_var_3d("TMP", plevs))  # (K)
+        tmp.append(gpv.ret_var_3d("TMP", plevs))  # (K)
         # 相対湿度データを3次元のndarrayで取り出す ()
         rh_i = np.zeros((len(plevs), len(lats_1d), len(lons_1d)))
-        rh_i[0:12, :, :] = gsm.ret_var_3d("RH", plevs[0:12])
+        rh_i[0:12, :, :] = gpv.ret_var_3d("RH", plevs[0:12])
         rh.append(rh_i)  # (%)
         # 東西風、南北風を3次元のndarrayで取り出す
-        uwnd.append(gsm.ret_var_3d("UGRD", plevs))  # (m/s)
-        vwnd.append(gsm.ret_var_3d("VGRD", plevs))  # (m/s)
+        uwnd.append(gpv.ret_var_3d("UGRD", plevs))  # (m/s)
+        vwnd.append(gpv.ret_var_3d("VGRD", plevs))  # (m/s)
         # 鉛直速度を3次元のndarrayで取り出す
-        omg.append(gsm.ret_var_3d("VVEL", plevs))  # (Pa/s)
+        omg.append(gpv.ret_var_3d("VVEL", plevs))  # (Pa/s)
         # ジオポテンシャル高度を3次元のndarrayで取り出す
-        hgt.append(gsm.ret_var_3d("HGT", plevs))  # (m)
+        hgt.append(gpv.ret_var_3d("HGT", plevs))  # (m)
         # ファイルを閉じる
-        gsm.close_netcdf()
+        gpv.close_netcdf()
         #
     # 4次元配列に変換
     tmp = np.array(tmp)
@@ -121,12 +147,12 @@ def writenc(d, info_json_path="output.json", output_nc_path="test.nc"):
 
 if __name__ == '__main__':
     # オプションの読み込み
-    args = parse_command(sys.argv, opt_lev=True)
-    # 予報時刻、作図する地域、高度の指定
+    args = parse_command(sys.argv, opt_sta=False, opt_dset=True)
+    # 予報時刻の指定
     fcst_date = args.fcst_date
-    #sta = args.sta
     file_dir = args.input_dir
-    level = args.level
+    # GSM/MSMの指定
+    dset = args.dset
     # 予報時刻からの経過時間（3時間毎に指定可能）
     fcst_end = args.fcst_time
     fcst_str = 0  # 開始時刻
@@ -136,8 +162,8 @@ if __name__ == '__main__':
     tsel = tinfo.strftime("%Y%m%d%H%M%S")
     #
     # NetCDFデータ読み込み(変数名をキーとした辞書型で格納)
-    d = readnc(tsel, file_dir, fcst_str, fcst_end, fcst_step)
+    d = readnc(tsel, dset, file_dir, fcst_str, fcst_end, fcst_step)
 
     # NetCDFデータ書き出し
-    output_filename = "Z__C_RJTD_" + tsel + "_GSM_GPV_Rjp_L-pall.nc"
+    output_filename = "Z__C_RJTD_" + tsel + "_" + dset + "_GPV_Rjp_L-pall.nc"
     writenc(d, info_json_path="output.json", output_nc_path=output_filename)
