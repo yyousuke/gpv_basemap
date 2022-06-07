@@ -83,12 +83,6 @@ def _ret_grib(tsel, file_name_g2, file_name_nc, force=False):
     return file_dir_name
 
 
-#  dir="${yyyy}/${mm}/${dd}"
-#  file="Z__C_RJTD_${yyyy}${mm}${dd}${hh}0000_MSM_GPV_Rjp_${flag}_grib2.bin"
-#  nc="Z__C_RJTD_${yyyy}${mm}${dd}${hh}0000_MSM_GPV_Rjp_${flag}_grib2.nc"
-#  ${WGET} ${URL}/${dir}/${file} >> ${log} 2>&1 || exit 1
-#  ${WGRIB2} ${file} -netcdf ${nc} >> ${log} 2>&1 || exit 1
-#
 def _netcdf_msm_surf(msm_dir, fcst_time, tsel):
     """netCDFファイルを読み込む(MSM、surf)
 
@@ -144,7 +138,28 @@ def _netcdf_msm_surf(msm_dir, fcst_time, tsel):
 
 #
 def _netcdf_msm_plev(msm_dir, fcst_time, tsel):
-    """netCDFファイルを読み込む(MSM、pres)"""
+    """netCDFファイルを読み込む(MSM、pres)
+
+    Parameters:
+    ----------
+    msm_dir: str
+        MSMデータを置いたディレクトリ、またはretrieve、force_retrieve
+        retrieve：データ取得を行う。既に存在している場合は取得しない。
+        force_retrieve：データ取得を行う。既に存在している場合にも再取得する。
+        ディレクトリ名：新たにデータ取得は行わず、指定ディレクトリにあるNetCDFファイル名を返す
+    fcst_time: int
+        予報時刻
+    tsel: str
+        ファイル名に含まれる時刻部分
+    ----------
+    Returns 
+    ----------    
+    rec_num: int
+        予報時刻に相当するデータ番号
+    file_dir_name: str
+        変換したNetCDFファイル名
+    ----------
+    """
     if fcst_time <= 15:
         fcst_flag = "00-15"
         rec_num = fcst_time // 3
@@ -177,6 +192,28 @@ def _netcdf_msm_plev(msm_dir, fcst_time, tsel):
 
 #
 def _netcdf_gsm_surf(gsm_dir, fcst_time, tsel):
+    """netCDFファイルを読み込む(GSM、surf)
+
+    Parameters:
+    ----------
+    msm_dir: str
+        GSMデータを置いたディレクトリ、またはretrieve、force_retrieve
+        retrieve：データ取得を行う。既に存在している場合は取得しない。
+        force_retrieve：データ取得を行う。既に存在している場合にも再取得する。
+        ディレクトリ名：新たにデータ取得は行わず、指定ディレクトリにあるNetCDFファイル名を返す
+    fcst_time: int
+        予報時刻
+    tsel: str
+        ファイル名に含まれる時刻部分
+    ----------
+    Returns 
+    ----------    
+    rec_num: int
+        予報時刻に相当するデータ番号
+    file_dir_name: str
+        変換したNetCDFファイル名
+    ----------
+    """
     """netCDFファイルを読み込む(GSM、surf)"""
     if fcst_time <= 84:  # 1h毎
         fcst_flag = "0000-0312"
@@ -210,7 +247,28 @@ def _netcdf_gsm_surf(gsm_dir, fcst_time, tsel):
 
 #
 def _netcdf_gsm_plev(gsm_dir, fcst_time, tsel):
-    """netCDFファイルを読み込む(GSM、pres)"""
+    """netCDFファイルを読み込む(GSM、pres)
+
+    Parameters:
+    ----------
+    msm_dir: str
+        GSMデータを置いたディレクトリ、またはretrieve、force_retrieve
+        retrieve：データ取得を行う。既に存在している場合は取得しない。
+        force_retrieve：データ取得を行う。既に存在している場合にも再取得する。
+        ディレクトリ名：新たにデータ取得は行わず、指定ディレクトリにあるNetCDFファイル名を返す
+    fcst_time: int
+        予報時刻
+    tsel: str
+        ファイル名に含まれる時刻部分
+    ----------
+    Returns 
+    ----------    
+    rec_num: int
+        予報時刻に相当するデータ番号
+    file_dir_name: str
+        変換したNetCDFファイル名
+    ----------
+    """
     if fcst_time <= 84:
         fcst_flag = "0000-0312"
         rec_num = fcst_time // 3
