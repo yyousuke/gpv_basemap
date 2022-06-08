@@ -4,9 +4,19 @@
 #  Basemapのcmを用いる
 from mpl_toolkits.basemap import cm
 
-# ColUtils: カラーユーティリティ
+
 class ColUtils():
+    """カラーユーティリティ"""
+
     def __init__(self, cmap_name=None):
+        """色テーブルを設定
+
+        Parameters:
+        ----------
+        cmap_name: str
+            色テーブルの名前
+        ---------
+        """
         if cmap_name == "s3pcpn_l":
             self.cmap = cm.s3pcpn_l
         elif cmap_name == "wysiwyg" or cmap_name == "GMT_wysiwyg":
@@ -24,6 +34,21 @@ class ColUtils():
                 raise Exception("invalid cmap_name")
 
     def get_ctable(self, under=None, over=None):
+        """カラーマップ作成
+
+        Parameters:
+        ----------
+        under: str
+            下限を下回った場合の色
+        over: str
+            上限を上回った場合の色
+        ---------
+        Returns:
+        ----------
+        cmap
+            カラーマップ
+        ----------
+        """
         # カラーマップ作成
         cmap = self.cmap
         if under is not None:

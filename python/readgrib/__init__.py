@@ -8,6 +8,7 @@ import urllib.request
 import netCDF4
 import numpy as np
 import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # for debug
@@ -305,20 +306,21 @@ def _netcdf_gsm_plev(gsm_dir, fcst_time, tsel):
 
 
 class ReadMSM():
-    """MSMデータを取得し、ndarrayに変換する
-
-    Parameters:
-    ----------
-    tsel: str
-        取得する時刻（形式：20210819120000）
-    msm_dir_path: str
-        MSMデータのあるディレクトリのパス
-    msm_lev: str
-        <surf/plev>：surfなら表面データ、plevなら気圧面データ
-    ----------
-    """
+    """MSMデータを取得し、ndarrayに変換する"""
 
     def __init__(self, tsel=None, msm_dir=None, msm_lev=None):
+        """取得する初期時刻の設定
+
+        Parameters:
+        ----------
+        tsel: str
+            取得する時刻（形式：20210819120000）
+        msm_dir_path: str
+            MSMデータのあるディレクトリのパス
+        msm_lev: str
+            <surf/plev>：surfなら表面データ、plevなら気圧面データ
+        ----------
+        """
         self.tsel = tsel
         self.msm_dir = msm_dir
         self.msm_lev = msm_lev
@@ -373,7 +375,8 @@ class ReadMSM():
         jdim = len(nc.dimensions['latitude'])
         num_rec = len(nc.dimensions['time'])
         if verbose:
-            print("num_lon =", idim, ", num_lat =", jdim, ", num_time =", num_rec)
+            print("num_lon =", idim, ", num_lat =", jdim, ", num_time =",
+                  num_rec)
         # 変数の読み込み(一次元)
         lons_1d = nc.variables["longitude"][:]
         lats_1d = nc.variables["latitude"][:]
@@ -468,20 +471,21 @@ class ReadMSM():
 
 
 class ReadGSM():
-    """GSMデータを取得し、ndarrayに変換する
-
-    Parameters:
-    ----------
-    tsel: str
-        取得する時刻（形式：20210819120000）
-    gsm_dir_path: str
-        GSMデータのあるディレクトリのパス
-    gsm_lev: str
-        <surf/plev>：surfなら表面データ、plevなら気圧面データ
-    ----------
-    """
+    """GSMデータを取得し、ndarrayに変換する"""
 
     def __init__(self, tsel=None, gsm_dir=None, gsm_lev=None):
+        """取得する初期時刻の設定
+
+        Parameters:
+        ----------
+        tsel: str
+            取得する時刻（形式：20210819120000）
+        gsm_dir_path: str
+            GSMデータのあるディレクトリのパス
+        gsm_lev: str
+            <surf/plev>：surfなら表面データ、plevなら気圧面データ
+        ----------
+        """
         self.tsel = tsel
         self.gsm_dir = gsm_dir
         self.gsm_lev = gsm_lev

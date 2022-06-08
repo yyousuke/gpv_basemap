@@ -89,17 +89,18 @@ def count_dind(start_year=1860,
 
 
 class WriteNC():
-    """ NetCDFファイルを書き出す
-
-    Parameters:
-    ----------
-    output_filedir: str
-        出力ファイルへのパス
-    force: bool
-       ファイルが存在している場合に削除する
-    """
+    """ NetCDFファイルを書き出す"""
 
     def __init__(self, output_filedir="test.nc", force=False):
+        """ NetCDFファイルの作成
+
+        Parameters:
+        ----------
+        output_filedir: str
+            出力ファイルへのパス
+        force: bool
+           ファイルが存在している場合に削除するかどうか
+        """
         # ファイルが存在している場合に削除する
         if os.path.isfile(output_filedir):
             if force:
@@ -161,7 +162,7 @@ class WriteNC():
         # 次元の設定
         nc.createDimension(out_name, len(dat))
         # 変数の設定
-        if dtype == "float": # np defalut: float64
+        if dtype == "float":  # np defalut: float64
             dtype = "float32"
         var = nc.createVariable(out_name,
                                 np.dtype(dtype).char, _dim2tuple(dimensions))
@@ -237,7 +238,7 @@ class WriteNC():
             追加のキー、値（エラー抑止のためのダミー）
         """
         nc = self.nc
-        if dtype == "float": # np defalut: float64
+        if dtype == "float":  # np defalut: float64
             dtype = "float32"
         var = nc.createVariable(out_name,
                                 np.dtype(dtype).char,

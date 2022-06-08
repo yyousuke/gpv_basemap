@@ -8,21 +8,23 @@ from .cutil import ColUtils
 
 
 class val2col():
-    """カラーマップの設定
+    """カラーマップの設定"""
 
-    Parameters:
-    ----------
-    tmin: float
-        カラーマップの下限
-    tmax: float
-        カラーマップの上限
-    tstep: float
-        カラーマップのラベルを描く間隔
-    cmap: str
-        色テーブルの名前
-    ----------
-    """
     def __init__(self, tmin=0., tmax=1., tstep=0.2, cmap='jet'):
+        """範囲と色テーブルを設定
+
+        Parameters:
+        ----------
+        tmin: float
+            カラーマップの下限
+        tmax: float
+            カラーマップの上限
+        tstep: float
+            カラーマップのラベルを描く間隔
+        cmap: str
+            色テーブルの名前
+        ---------
+        """
         self.tmin = tmin
         self.tmax = tmax
         self.tstep = tstep

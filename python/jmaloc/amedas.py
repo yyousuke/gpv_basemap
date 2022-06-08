@@ -12,7 +12,9 @@ import urllib.request
 
 class AmedasStation():
     """アメダス地点情報の取得"""
+
     def __init__(self):
+        """データ読み込みと変換"""
         # データ読み込み
         df = self._location()
         # データ変換
@@ -20,6 +22,7 @@ class AmedasStation():
 
     def get_staloc(self, kn_name=None, kj_name=None, en_name=None):
         """アメダス地点の経度、緯度を返す
+
         Parameters:
         ----------
         kn_name: str
@@ -64,6 +67,7 @@ class AmedasStation():
         return df.T
 
     def _str_rep(self, inp):
+        """カッコで囲まれた文字列をリストに置き換え"""
         inp = str(inp)
         return inp.replace("[", "").replace("]", "").replace(",", "").split()
 
