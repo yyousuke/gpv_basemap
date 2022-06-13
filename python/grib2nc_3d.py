@@ -143,7 +143,9 @@ def writenc(d, info_json_path="output.json", output_nc_path="test.nc"):
         nc.create_var(dat, **df.loc[:, k])
         if verbose:
             print("write: ", k, dat.shape)
-
+    # ファイルを閉じる
+    nc.close_netcdf()
+    #
 
 if __name__ == '__main__':
     # オプションの読み込み
