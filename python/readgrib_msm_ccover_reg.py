@@ -6,7 +6,6 @@ import sys
 from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
-import matplotlib.ticker as ticker
 from jmaloc import MapRegion
 from readgrib import ReadMSM
 from utils import val2col
@@ -15,17 +14,15 @@ from utils import parse_command
 from utils import post
 import utils.common
 
-### Start Map Prog ###
-
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm, cfrh, title,
             output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
-        地点名 
+        地点名
     lons_1d: str
         経度データ（1次元、度）
     lats_1d: ndarray
@@ -45,7 +42,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm, cfrh, title,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -95,11 +92,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm, cfrh, title,
                     fontsize='small',
                     labels=[True, False, False, False])
     #
-    # 陸地に色を付ける
-    #m.fillcontinents(color='gray')
-    #m.fillcontinents(color='gray',lake_color='aqua')
-    #
-    #
     if opt_c1:
         # 等圧線をひく間隔(1hPaごと)をlevels1にリストとして入れる
         levels1 = range(math.floor(mslp.min() - math.fmod(mslp.min(), 2)),
@@ -135,11 +127,11 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm, cfrh, title,
     cmapm = plt.get_cmap('Greens')  # 中層
     cmaph = plt.get_cmap('Blues')  # 上層
     # 陰影を描く（下層雲）
-    csl = m.contourf(lons, lats, cfrl, levels=levelsc, cmap=cmapl, alpha=0.3)
+    m.contourf(lons, lats, cfrl, levels=levelsc, cmap=cmapl, alpha=0.3)
     # 陰影を描く（中層雲）
-    csm = m.contourf(lons, lats, cfrm, levels=levelsc, cmap=cmapm, alpha=0.3)
+    m.contourf(lons, lats, cfrm, levels=levelsc, cmap=cmapm, alpha=0.3)
     # 陰影を描く（上層雲）
-    csh = m.contourf(lons, lats, cfrh, levels=levelsc, cmap=cmaph, alpha=0.3)
+    m.contourf(lons, lats, cfrh, levels=levelsc, cmap=cmaph, alpha=0.3)
     #
     # 海岸線を描く
     m.drawcoastlines()
@@ -174,8 +166,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, cfrl, cfrm, cfrh, title,
     plt.close()
 
 
-### End Map Prog ###
-
 if __name__ == '__main__':
     # オプションの読み込み
     args = parse_command(sys.argv)
@@ -209,8 +199,6 @@ if __name__ == '__main__':
         # 変数取り出し
         # 海面更生気圧を二次元のndarrayで取り出す
         mslp = msm.ret_var("PRMSL_meansealevel", fact=0.01)  # (hPa)
-        # 降水量を二次元のndarrayで取り出す
-        #rain = msm.ret_var("APCP_surface")  # (mm/h)
         # 下層雲量を二次元のndarrayで取り出す
         cfrl = msm.ret_var("LCDC_surface")  # ()
         # 中層雲量を二次元のndarrayで取り出す

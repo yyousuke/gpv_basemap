@@ -5,7 +5,7 @@ import math
 import sys
 from datetime import timedelta
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap, cm
+from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadMSM
 from utils import ColUtils
@@ -14,17 +14,15 @@ from utils import parse_command
 from utils import post
 import utils.common
 
-### Start Map Prog ###
-
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, tmp, rain, title,
             output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
-        地点名 
+        地点名
     lons_1d: str
         経度データ（1次元、度）
     lats_1d: ndarray
@@ -40,7 +38,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, tmp, rain, title,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -89,10 +87,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, tmp, rain, title,
                     fontsize='small',
                     labels=[True, False, False, False])
     #
-    # 陸地に色を付ける
-    #m.fillcontinents(color='gray')
-    #m.fillcontinents(color='gray',lake_color='aqua')
-    #
     # 等温線をひく
     cmap = plt.get_cmap('seismic')  # 色テーブルの選択
     if opt_c1:
@@ -126,7 +120,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, tmp, rain, title,
     levelsr = [0.2, 1, 5, 10, 20, 50, 80, 100]
     # 陰影を描く
     cs = m.contourf(lons, lats, rain, levels=levelsr, cmap=cmap, extend='both')
-    #cs=m.contourf(lons_1d,lats_1d,rain,latlon=True,tri=True,levels=levelsr,cmap=cmap,extend='both')
     # カラーバーを付ける
     cbar = m.colorbar(cs, location='bottom', pad="5%")
     cbar.set_label('precipitation (mm/hr)')
@@ -140,8 +133,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, tmp, rain, title,
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
 
-
-### End Map Prog ###
 
 if __name__ == '__main__':
     # オプションの読み込み

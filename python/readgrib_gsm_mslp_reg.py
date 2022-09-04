@@ -5,7 +5,7 @@ import math
 import sys
 from datetime import timedelta
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap, cm
+from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadGSM
 from utils import ColUtils
@@ -16,17 +16,15 @@ import utils.common
 
 opt_stmp = False  # 等温線を引く（-2、2℃）
 
-### Start Map Prog ###
-
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
             title, output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
-        地点名 
+        地点名
     lons_1d: str
         経度データ（1次元、度）
     lats_1d: ndarray
@@ -44,7 +42,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -96,11 +94,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
                     color="k",
                     fontsize='small',
                     labels=[True, False, False, False])
-    #
-    # 陸地に色を付ける
-    #m.fillcontinents(color='gray')
-    #m.fillcontinents(color='gray',lake_color='aqua')
-    #
     #
     if opt_c1:
         # 等圧線をひく間隔(1hPaごと)をlevelsにリストとして入れる
@@ -182,8 +175,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, tmp, uwnd, vwnd,
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
 
-
-### End Map Prog ###
 
 if __name__ == '__main__':
     # オプションの読み込み

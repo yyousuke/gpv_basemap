@@ -1,11 +1,10 @@
 #!/opt/local/bin/python3
 import pandas as pd
 import numpy as np
-import math
 import sys
 from datetime import timedelta
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap, cm
+from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadMSM
 from utils import ColUtils
@@ -15,13 +14,11 @@ from utils import parse_command
 from utils import post
 import utils.common
 
-### Start Map Prog ###
-
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, z50, the85, the50, dthdz, title,
             output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
@@ -45,7 +42,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, z50, the85, the50, dthdz, title,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -152,8 +149,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, z50, the85, the50, dthdz, title,
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
 
-
-### End Map Prog ###
 
 if __name__ == '__main__':
     pr85 = 85000.0  # pressure (Pa) for 850 hPa

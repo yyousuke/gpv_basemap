@@ -24,16 +24,14 @@ plt.rcParams['ytick.major.width'] = 1.2  # y軸主目盛線の長さ
 # lon 120.000000 to 150.000000 by 0.250000 #points=18271
 
 plt_barbs = True  # true: 矢羽を描く
-#barbs_kt = False # true: kt, false: m/s
+# barbs_kt = False # true: kt, false: m/s
 barbs_kt = True  # true: kt, false: m/s
-
-### Start Map Prog ###
 
 
 def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
             title, output_filename):
     """時系列データの作図を行う
-    
+
     Parameters:
     ----------
     index: datetime.datetime
@@ -59,7 +57,7 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -90,7 +88,6 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
     ax2.set_ylabel('Temperature (K)')
     # 凡例
     ax2.legend(loc='upper right')
-    #plt.legend(loc='lower center')
     #
     # (2) RH（%）& wind
     # (2-1) RH（%）
@@ -188,15 +185,11 @@ def plotmap(index, mslp, prep, temp, uwnd, vwnd, relh, cfrl, cfrm, cfrh, cfrt,
     #
     # プロット範囲の調整
     plt.subplots_adjust(top=None, bottom=0.15, wspace=0.25, hspace=0.15)
-    #plt.subplots_adjust(hspace=0.8,bottom=0.2)
 
     # (4) ファイルへの書き出し
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
-    #plt.show()
 
-
-### End Map Prog ###
 
 if __name__ == '__main__':
     # オプションの読み込み

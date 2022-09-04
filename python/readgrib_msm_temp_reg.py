@@ -1,7 +1,6 @@
 #!/opt/local/bin/python3
 import pandas as pd
 import numpy as np
-import math
 import sys
 from datetime import timedelta
 import matplotlib.pyplot as plt
@@ -14,17 +13,15 @@ from utils import parse_command
 from utils import post
 import utils.common
 
-### Start Map Prog ###
-
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
             output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
-        地点名 
+        地点名
     lons_1d: str
         経度データ（1次元、度）
     lats_1d: ndarray
@@ -44,7 +41,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
@@ -140,9 +137,13 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
     # 850 hPa東西風、南北風
     # 矢羽を描く
     if opt_barbs:
-        m.barbs(lons[::bstp,::bstp], lats[::bstp,::bstp], \
-                uwnd[::bstp,::bstp], vwnd[::bstp,::bstp], \
-                color='r', length=5, linewidth=1.5,
+        m.barbs(lons[::bstp, ::bstp],
+                lats[::bstp, ::bstp],
+                uwnd[::bstp, ::bstp],
+                vwnd[::bstp, ::bstp],
+                color='r',
+                length=5,
+                linewidth=1.5,
                 sizes=dict(emptybarb=0.00, spacing=0.16, height=0.4))
     #
     # 海岸線を描く
@@ -154,8 +155,6 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, uwnd, vwnd, tmp, rh, title,
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     plt.close()
 
-
-### End Map Prog ###
 
 if __name__ == '__main__':
     # オプションの読み込み
@@ -194,7 +193,6 @@ if __name__ == '__main__':
         vwnd = msm.ret_var("VGRD_" + str(level) + "mb")  # (m/s)
         #        uwnd = msm.ret_var("UGRD_850mb") # (m/s)
         #        vwnd = msm.ret_var("VGRD_850mb") # (m/s)
-        #wspd = np.sqrt(uwnd**2 + vwnd**2)
         # 850 hPa 気温データを二次元のndarrayで取り出す (K->℃)
         tmp = msm.ret_var("TMP_" + str(level) + "mb", offset=-273.15)  # (℃)
         #        tmp = msm.ret_var("TMP_850mb", offset=-273.15) # (℃)

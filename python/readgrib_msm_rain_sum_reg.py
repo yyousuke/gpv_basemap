@@ -3,27 +3,23 @@ import pandas as pd
 import numpy as np
 import math
 import sys
-from datetime import timedelta
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from jmaloc import MapRegion
 from readgrib import ReadMSM
 from utils import ColUtils
 from utils import parse_command
-from utils import post
 import utils.common
-
-### Start Map Prog ###
 
 
 def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
             output_filename):
     """作図を行う
-    
+
     Parameters:
     ----------
     sta: str
-        地点名 
+        地点名
     lons_1d: str
         経度データ（1次元、度）
     lats_1d: ndarray
@@ -39,7 +35,7 @@ def plotmap(sta, lons_1d, lats_1d, lons, lats, mslp, rain, title,
     title: str
         タイトル
     output_filename: str
-        出力ファイル名 
+        出力ファイル名
     ----------
     """
     #
