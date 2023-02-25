@@ -2,6 +2,24 @@
 
 気象庁数値予報GPVデータを取得し、cartopyで作図する。データは京都大学生存圏研究所（RISH）のサーバから取得する。データ利用時の注意事項等については、[RISHのページ](http://database3.rish.kyoto-u.ac.jp/arch/jmadata/ "京都大学生存圏研究所")参照のこと。
 
+## 実行環境の準備
+
+下記のパッケージを導入する
+
+- Numpy
+
+- Pandas
+
+- matplotlib
+
+- mpl_toolkits.basemap
+
+- netCDF4
+
+- array
+
+- json
+
 ## 制御プログラム
 
 - **main.py**：手動で./python/以下の全プログラムを実行する場合
