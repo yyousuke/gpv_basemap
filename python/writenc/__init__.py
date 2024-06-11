@@ -257,7 +257,7 @@ class WriteNC():
         if _str2bool(actual_range):
             var.actual_range = _get_data_range(dat)
         # 欠損処理
-        dat[dat == missing_input] = np.nan
+        dat[dat == missing_input] = _npconvert(missing_value, dtype=dtype)
         # 変数の書き出し
         if len(_dim2tuple(dimensions)) == 4:
             var[:, :, :, :] = _npconvert(dat, dtype=dtype)
